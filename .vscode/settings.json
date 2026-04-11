@@ -1,3 +1,5 @@
 {
-          "editor.tabSize": 25
+"editor.tabSize": 25,
+"python-envs.defaultEnvManager": "ms-python.python:conda",
+"python-envs.defaultPackageManager": "ms-python.python:conda"
 }
