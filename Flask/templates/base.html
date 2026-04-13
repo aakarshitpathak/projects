@@ -1,0 +1,35 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document</title>
+<!-- <style>
+
+</style> -->
+
+{% block css %}
+{% endblock %}
+
+<link href ="/static/css/base_style.css" rel ="stylesheet">
+</head>
+<body>
+<div class ="navbar">
+<nav>
+<ul>
+<li><a href='/'>Home</a></a></li>
+<li><a href='/about'>About</a></a></li>
+<li><a href='/login'>Login</a></a></li>
+<li><a href='#'>Contacts</a></a></li>
+</ul>
+</nav>
+</div>
+
+<main>
+{%block content %}{% endblock %}
+</main>
+
+{% block js %}
+{% endblock %}
+
+</body>
+</html>
