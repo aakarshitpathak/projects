@@ -47,10 +47,6 @@ def set_df(df: pd.DataFrame):
     """Save a DataFrame into the in-memory store.""" 
     _store['df'] = df 
  
-# ── MODULE 1 — Home ───────────────────────────────────────── 
-@app.route('/') 
-def home(): 
-    return render_template('index.html') 
  
 # ── MODULE 2 & 3 — Upload + Parse ─────────────────────────── 
 @app.route('/upload', methods=['GET', 'POST']) 
@@ -139,9 +135,7 @@ def eda():
  
 # ── PLACEHOLDER routes (will be filled in future modules) ─── 
  
-# ── Run ───────────────────────────────────────────────────── 
-if __name__ == '__main__': 
-    app.run(debug=True)
+
 """ 
 modules/data_loader.py — MODULE 3 
 Reads the uploaded file into a Pandas DataFrame. 
@@ -308,9 +302,7 @@ def generate_visualizations(df: pd.DataFrame) -> dict:
     return plots  
 
 
-# ----------------------
-# HOME PAGE
-# ----------------------
+
 @app.route('/cleaning', methods=['GET', 'POST']) 
 def cleaning(): 
     """ 
@@ -356,7 +348,9 @@ def cleaning():
                           outlier_stats=outlier_stats, 
                           duplicate_count=duplicate_count) 
 
-
+# ----------------------
+# HOME PAGE
+# ----------------------
 @app.route('/')
 def home():
     return render_template('home.html')
