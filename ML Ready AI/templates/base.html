@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- ✅ Mobile Responsive -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ML Ready AI</title>
+
+    <!-- ✅ Global CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+
+    <!-- ✅ Page-specific CSS -->
+    {% block css %}{% endblock %}
+</head>
+
+<body>
+    <!-- ✅ Navbar -->
+    <nav>
+        <a href="{{ url_for('home') }}">Home</a>
+        <a href="{{ url_for('about') }}">About</a>
+    </nav>
+
+    <!-- ✅ Page Content -->
+    {% block content %}{% endblock %}
+
+    <!-- ✅ Page-specific JS (future use) -->
+    {% block js %}{% endblock %}
+
+</body>
+</html>
