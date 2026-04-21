@@ -1,0 +1,136 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0b1440; /* deep blue */
+    overflow: hidden;
+}
+
+/* Canvas */
+canvas#bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+/* Heading */
+.content {
+    text-align: center;
+    margin-top: 60px;
+}
+
+.badge {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #00e5ff;
+}
+
+h1 {
+    font-size: 3rem;
+}
+
+h1 span {
+    background: linear-gradient(90deg, #00e5ff, #7b2ff7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.sub {
+    color: rgba(255,255,255,0.6);
+}
+
+/* Auth */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+}
+
+/* Glass box */
+.form-box {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 35px;
+    border-radius: 20px;
+    backdrop-filter: blur(15px);
+    width: 320px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.2);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+}
+
+/* Toggle */
+.toggle-btns button {
+    margin: 5px;
+    padding: 8px 15px;
+    border: none;
+    background: rgba(255,255,255,0.9);
+    color: #111;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Inputs */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+form input {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid rgba(0,229,255,0.3);
+    border-radius: 5px;
+    background: rgba(0,0,0,0.3);
+    color: white;
+}
+
+form input::placeholder {
+    color: rgba(255,255,255,0.6);
+}
+
+/* Button */
+form button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background: linear-gradient(90deg, #00e5ff, #7b2ff7);
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+form button:hover {
+    transform: scale(1.05);
+}
+
+/* Bottom text */
+.code-snippet {
+    position: fixed;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(0,229,255,0.3);
+}
+
+/* Switch text (Login ↔ Signup) */
+.switch-text {
+    margin-top: 10px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+}
+
+.switch-text span {
+    color: #00e5ff;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.switch-text span:hover {
+    text-decoration: underline;
+}
