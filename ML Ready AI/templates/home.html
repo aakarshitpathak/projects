@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block css %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: #050d1a;
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  canvas#bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+  }
+
+  .content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #00e5ff;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    opacity: 0.8;
+  }
+
+  h1 {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 1.2rem;
+  }
+
+  h1 span {
+    background: linear-gradient(90deg, #00e5ff, #7b2ff7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  p.sub {
+    font-size: 1.15rem;
+    color: rgba(255,255,255,0.55);
+    max-width: 520px;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+  }
+
+  .cta {
+    display: inline-block;
+    padding: 0.8rem 2.2rem;
+    border: 1px solid rgba(0,229,255,0.4);
+    border-radius: 4px;
+    color: #00e5ff;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-decoration: none;
+    background: rgba(0,229,255,0.06);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .cta:hover { background: rgba(0,229,255,0.15); border-color: #00e5ff; }
+
+  .code-snippet {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: rgba(0,229,255,0.3);
+    letter-spacing: 1px;
+    z-index: 10;
+    white-space: nowrap;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<canvas id="bg"></canvas>
+
+<div class="content">
+  <div class="badge">// machine learning</div>
+  <h1>Build the <span>Future</span><br>with AI</h1>
+  <p class="sub">Explore cutting-edge algorithms, neural architectures, and data-driven models that power tomorrow's intelligent systems.</p>
+  <a class="cta" href="/login">Get Started →</a>
+</div>
+
+<div class="code-snippet">model.fit(X_train, y_train, epochs=100)</div>
+
+
+{% endblock %}
+
+{% block js %}
+<script>
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+
+let W, H, nodes, edges, particles;
+
+const COLORS = {
+  node: '#00e5ff',
+  edge: 'rgba(0,229,255,0.12)',
+  activeEdge: 'rgba(0,229,255,0.55)',
+  particle: '#7b2ff7',
+  bg1: '#050d1a',
+  bg2: '#0a1628',
+};
+
+function rand(min, max) { return Math.random() * (max - min) + min; }
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  init();
+}
+
+function init() {
+  // Neural network layers
+  const layers = [3, 5, 6, 5, 3];
+  nodes = [];
+  edges = [];
+  particles = [];
+
+  const totalLayers = layers.length;
+  const xStep = W / (totalLayers + 1);
+
+  layers.forEach((count, li) => {
+    const x = xStep * (li + 1);
+    const yStep = H / (count + 1);
+    for (let ni = 0; ni < count; ni++) {
+      nodes.push({
+        x, y: yStep * (ni + 1),
+        layer: li, idx: ni,
+        r: rand(4, 7),
+        pulsePhase: rand(0, Math.PI * 2),
+        pulseSpeed: rand(0.01, 0.03),
+        activated: Math.random() > 0.5,
+        activationTimer: rand(0, 200),
+      });
+    }
+  });
+
+  // Edges between adjacent layers
+  for (let li = 0; li < layers.length - 1; li++) {
+    const fromLayer = nodes.filter(n => n.layer === li);
+    const toLayer = nodes.filter(n => n.layer === li + 1);
+    fromLayer.forEach(from => {
+      toLayer.forEach(to => {
+        edges.push({ from, to, weight: rand(0.1, 1), active: false, activeTimer: 0 });
+      });
+    });
+  }
+
+  // Floating data particles
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: rand(0, W), y: rand(0, H),
+      vx: rand(-0.3, 0.3), vy: rand(-0.3, 0.3),
+      size: rand(1, 2.5),
+      opacity: rand(0.1, 0.35),
+      char: String.fromCharCode(rand(48, 57) | 0),
+      charTimer: 0,
+    });
+  }
+}
+
+let frame = 0;
+function draw() {
+  frame++;
+
+  // Background gradient
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, COLORS.bg1);
+  grad.addColorStop(1, COLORS.bg2);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle grid
+  ctx.strokeStyle = 'rgba(0,229,255,0.03)';
+  ctx.lineWidth = 0.5;
+  const gridSize = 60;
+  for (let gx = 0; gx < W; gx += gridSize) {
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+  }
+  for (let gy = 0; gy < H; gy += gridSize) {
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+  }
+
+  // Floating particles (binary/data)
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+    p.charTimer++;
+    if (p.charTimer > 40) { p.char = Math.random() > 0.5 ? '1' : '0'; p.charTimer = 0; }
+    ctx.font = `${p.size * 5}px Share Tech Mono, monospace`;
+    ctx.fillStyle = `rgba(0,229,255,${p.opacity})`;
+    ctx.fillText(p.char, p.x, p.y);
+  });
+
+  // Randomly activate edges for signal propagation
+  if (frame % 40 === 0) {
+    const e = edges[Math.floor(Math.random() * edges.length)];
+    e.active = true; e.activeTimer = 0; e.progress = 0;
+  }
+
+  // Draw edges
+  edges.forEach(e => {
+    if (e.active) {
+      e.activeTimer++;
+      e.progress = Math.min(e.activeTimer / 60, 1);
+      if (e.activeTimer > 80) { e.active = false; e.activeTimer = 0; }
+    }
+
+    ctx.lineWidth = e.active ? 1.2 : 0.5;
+    ctx.strokeStyle = e.active
+      ? `rgba(0,229,255,${0.6 * (1 - Math.abs(e.progress - 0.5) * 2)})`
+      : COLORS.edge;
+    ctx.beginPath();
+    ctx.moveTo(e.from.x, e.from.y);
+    ctx.lineTo(e.to.x, e.to.y);
+    ctx.stroke();
+
+    // Moving signal dot
+    if (e.active && e.progress < 1) {
+      const sx = e.from.x + (e.to.x - e.from.x) * e.progress;
+      const sy = e.from.y + (e.to.y - e.from.y) * e.progress;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#00e5ff';
+      ctx.fill();
+    }
+  });
+
+  // Draw nodes
+  nodes.forEach(n => {
+    n.pulsePhase += n.pulseSpeed;
+    const pulse = 1 + Math.sin(n.pulsePhase) * 0.3;
+    const r = n.r * pulse;
+
+    // Outer glow ring
+    const grd = ctx.createRadialGradient(n.x, n.y, r * 0.5, n.x, n.y, r * 2.5);
+    grd.addColorStop(0, 'rgba(0,229,255,0.18)');
+    grd.addColorStop(1, 'rgba(0,229,255,0)');
+    ctx.beginPath(); ctx.arc(n.x, n.y, r * 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = grd; ctx.fill();
+
+    // Node core
+    ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(5,13,26,0.9)'; ctx.fill();
+    ctx.strokeStyle = '#00e5ff';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Inner dot
+    ctx.beginPath(); ctx.arc(n.x, n.y, r * 0.35, 0, Math.PI * 2);
+    ctx.fillStyle = '#00e5ff'; ctx.fill();
+  });
+
+  requestAnimationFrame(draw);
+}
+
+window.addEventListener('resize', resize);
+resize();
+draw();
+</script>
+{% endblock %}
+
+
