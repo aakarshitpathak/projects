@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/authentication.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- 🔥 Neural Network Background -->
+<canvas id="bg"></canvas>
+
+<!-- ✨ Heading -->
+<div class="content">
+  <div class="badge"></div>
+  <h1>Build the <span>Future</span><br>with AI</h1>
+</div>
+
+
+
+<!-- 🔐 Auth Box -->
+<div class="auth-container">
+    <div class="form-box">
+        
+        <div class="toggle-btns">
+            <button onclick="showLogin()">Login</button>
+            <button onclick="showSignup()">Signup</button>
+        </div>
+
+        <!-- LOGIN -->
+    <form id="loginForm" method="POST" action="{{ url_for('login') }}" class="auth-form">
+    
+        <h2>Welcome Back 👋</h2>
+
+        <div class="input-group">
+            <input type="email" name="email" placeholder="Email" required>
+        </div>
+
+        <div class="input-group">
+            <input type="password" name="password" placeholder="Password" required>
+        </div>
+
+        <button type="submit" class="auth-btn">Login</button>
+
+        <p class="switch-text">
+            Don’t have an account? 
+        <span onclick="showSignup()">Sign up</span>
+        </p>
+
+    </form>
+
+        <!-- SIGNUP -->
+<form id="signupForm" method="POST" action="{{ url_for('signup') }}" style="display:none;">
+    <h2>Create Account 🚀</h2>
+    <input type="text" name="name" placeholder="Username" required>
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+    <button type="submit">Signup</button>
+
+    <!-- 👇 Back to login -->
+    <p class="switch-text">
+        Already have an account? 
+        <span onclick="showLogin()">Login</span>
+    </p>
+</form>
+
+    </div>
+</div>
+
+<div class="code-snippet">
+    model.fit(X_train, y_train, epochs=100)
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}
