@@ -1,0 +1,67 @@
+/* RESET + FULL HEIGHT */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+/* MAIN BODY BACKGROUND */
+body {
+    font-family: Arial, sans-serif;
+
+    /* 🔥 FULL AI BACKGROUND */
+    background: url("../images/ml_website_4k_background.svg") no-repeat center center fixed;
+    background-size: cover;
+
+    color: white;
+    min-height: 100vh;
+
+    /* ❌ REMOVE FLEX */
+    /* display: flex; */
+    /* flex-direction: column; */
+}
+
+/* 🔥 DARK OVERLAY */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.6);
+    z-index: -1;
+}
+
+/* NAVBAR */
+nav {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 12px 20px;
+
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+nav a {
+    color: white;
+    margin-right: 15px;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+nav a:hover {
+    color: #00e5ff;
+}
+
+/* CONTENT AREA */
+.content, .auth-container {
+    position: relative;
+    z-index: 1;
+}
+
+/* OPTIONAL: MAKE PAGE FILL SPACE */
+.container {
+    padding: 40px 20px;
+}
