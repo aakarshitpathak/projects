@@ -369,6 +369,9 @@ def about():
 @app.route('/auth')
 def auth():
     return render_template('authentication.html')
+
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -554,46 +557,47 @@ def login():
         flash("Invalid Credentials", "error")
         return redirect(url_for('auth'))
 
-
-@app.route('/signup', methods=['POST'])
+    
+@app.route('/signup', methods=["GET", "POST"])
 def signup():
     if request.method=='POST':
-                name=request.form['name']
-                email=request.form['email']
-                password=request.form['password']
-                confirm_password=request.form['confirm_password']
+               
+        name=request.form['name']
+        email=request.form['email']
+        password=request.form['password']
+        confirm_password=request.form['confirm_password']
 
-                if not name or len(name.strip())<2:
+        if not name or len(name.strip())<2:
                         flash('name must be atleast 2 character long','error')
                         return redirect(url_for('auth'))
-                if not email or '@' not in email :
+        if not email or '@' not in email :
                         flash('Invalid email','error')
                         return redirect(url_for('auth'))
-                if not password or len(password)<8 or not any(char.isalpha() for char in password ) or not any(char.isdigit() for char in password) or not any (not char.isalnum() for char in password):
+        if not password or len(password)<8 or not any(char.isalpha() for char in password ) or not any(char.isdigit() for char in password) or not any (not char.isalnum() for char in password):
                         flash('pass must be atleast 8 char long and contain letters and contain numbers and special characters','error')
                         return redirect(url_for('auth'))
-                if confirm_password!=password:
+        if confirm_password!=password:
                         flash('Confirm password should match password','error')
                         return redirect(url_for('auth'))
                 #check if user already exists
-                existing_user=User.query.filter_by(email=email).first()
+        existing_user=User.query.filter_by(email=email).first()
 
-                if existing_user:
+        if existing_user:
                         flash('Email already exists.Please login. ','error')
                         return redirect(url_for('auth'))
                 # generate hash password
-                hashed_password=generate_password_hash(password)
-                new_user=User(
+        hashed_password=generate_password_hash(password)
+        new_user=User(
                         name=name.strip(),
                         email=email.strip(),
                         password=hashed_password
                 )
-                try:
+        try:
                         db.session.add(new_user)
                         db.session.commit()
                         flash('Registration successful .Proceed to signin','success')
                         return redirect(url_for('auth'))
-                except Exception as e:
+        except Exception as e:
                         db.session.rollback()
                         flash('Some error occured while registering','error')
                         return redirect(url_for('auth'))
