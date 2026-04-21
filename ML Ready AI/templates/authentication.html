@@ -27,7 +27,7 @@
         </div>
 
         <!-- LOGIN -->
-    <form id="loginForm" method="POST" action="{{ url_for('login') }}" class="auth-form">
+    <form id="login" method="POST" action="/login" class="auth-form">
     
         <h2>Welcome Back 👋</h2>
 
@@ -49,7 +49,7 @@
     </form>
 
         <!-- SIGNUP -->
-<form id="signupForm" method="POST" action="{{ url_for('signup') }}" style="display:none;">
+<form id="signup" method="POST" action="/signup" style="display:none;">
     <h2>Create Account 🚀</h2>
     <input type="text" name="name" placeholder="Username" required>
     <input type="email" name="email" placeholder="Email" required>
