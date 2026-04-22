@@ -5,8 +5,7 @@ from functools import wraps
 import os 
 import io 
 import pandas as pd 
-from flask import (Flask, render_template, request, 
-redirect, url_for, flash, session) 
+from flask import (Flask, render_template, request,redirect, url_for, flash, session) 
 from werkzeug.utils import secure_filename 
 from modules.data_loader  import load_dataframe, allowed_file 
 from modules.data_summary import get_summary 
