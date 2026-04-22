@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Dataset — ML Ready AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* ---- Upload-specific styles ---- */
+        .upload-box {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 50px 30px;
+            text-align: center;
+            transition: border-color 0.3s, background 0.3s;
+            cursor: pointer;
+            margin-bottom: 28px;
+        }
+
+        .upload-box:hover {
+            border-color: var(--accent);
+            background: rgba(108, 99, 255, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3.2rem;
+            margin-bottom: 14px;
+        }
+
+        .upload-box h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .upload-box p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 18px;
+        }
+
+        .formats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .fmt-tag {
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px solid var(--accent2);
+            color: var(--accent2);
+            border-radius: 6px;
+            padding: 4px 14px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* Hidden real file input, triggered by label */
+        #file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: inline-block;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: border-color 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .file-label:hover {
+            border-color: var(--accent);
+        }
+
+        #file-name {
+            font-size: 0.82rem;
+            color: var(--accent2);
+            min-height: 18px;
+        }
+
+        .tip-box {
+            background: rgba(108, 99, 255, 0.08);
+            border-left: 3px solid var(--accent);
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/upload" class="active">Upload</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <h1 class="page-title">📂 Upload Your Dataset</h1>
+        <p class="page-subtitle">Supported formats: CSV, Excel (.xlsx), JSON, XML, HTML tables</p>
+
+        <!-- Flash messages (errors / success) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- UPLOAD FORM -->
+        <div class="card">
+            <form method="POST" action="/upload" enctype="multipart/form-data" id="upload-form">
+
+                <!-- Drag-drop styled box -->
+                <div class="upload-box" onclick="document.getElementById('file-input').click()">
+                    <div class="upload-icon">📁</div>
+                    <h3>Click to browse or drag &amp; drop your file</h3>
+                    <p>Maximum file size: 50 MB</p>
+
+                    <!-- Supported format badges -->
+                    <div class="formats-row">
+                        <span class="fmt-tag">CSV</span>
+                        <span class="fmt-tag">XLSX</span>
+                        <span class="fmt-tag">JSON</span>
+                        <span class="fmt-tag">XML</span>
+                        <span class="fmt-tag">HTML</span>
+                    </div>
+
+                    <!-- Actual file input (hidden) -->
+                    <input type="file" id="file-input" name="dataset" accept=".csv,.xlsx,.xls,.json,.xml,.html,.htm"
+                        onchange="showFileName(this)">
+
+                    <!-- Shows chosen file name -->
+                    <div id="file-name">No file selected yet</div>
+                </div>
+
+                <div class="tip-box">
+                    💡 <strong>Tip:</strong> Make sure your dataset has a header row (column names in the first row).
+                    CSV files work best. Large files may take a few seconds to process.
+                </div>
+
+                <br>
+                <button type="submit" class="btn-primary" style="width:100%; border:none; font-size:1rem;">
+                    ⬆️ Upload &amp; Analyse
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+    <script>
+        /* Show the selected file's name inside the upload box */
+        function showFileName(input) {
+            const label = document.getElementById('file-name');
+            if (input.files && input.files.length > 0) {
+                label.textContent = '✅ Selected: ' + input.files[0].name;
+                label.style.color = '#00d2ff';
+            } else {
+                label.textContent = 'No file selected yet';
+            }
+        }
+    </script>
+
+</body>
+
+</html>

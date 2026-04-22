@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Dashboard — ML Ready AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .done-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .done-item {
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px solid #22c55e;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            color: #86efac;
+        }
+
+        .check-icon {
+            font-size: 1.2rem;
+        }
+
+        .final-hero {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1a1f36 0%, #0d0f1a 100%);
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .congrats {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/upload">Upload</a>
+            <a href="/summary">Summary</a>
+            <a href="/final" class="active">Final Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+
+        <div class="final-hero">
+            <div class="congrats">🎉</div>
+            <h1 class="page-title" style="margin-bottom: 0;">Project Completed Successfully!</h1>
+            <p class="page-subtitle">Your data is clean, and your model is trained and ready for production.</p>
+        </div>
+
+        <!-- 1. PIPELINE SUMMARY -->
+        <div class="card">
+            <h3>🏗️ Pipeline Status</h3>
+            <div class="done-grid">
+                <div class="done-item"><span class="check-icon">✅</span> Dataset Uploaded</div>
+                <div class="done-item"><span class="check-icon">✅</span> Summary & EDA</div>
+                <div class="done-item"><span class="check-icon">✅</span> Missing Values Fixed</div>
+                <div class="done-item"><span class="check-icon">✅</span> Outliers Handled</div>
+                <div class="done-item"><span class="check-icon">✅</span> Duplicates Removed</div>
+                <div class="done-item"><span class="check-icon">✅</span> Features Engineered</div>
+                <div class="done-item"><span class="check-icon">✅</span> Model Trained</div>
+            </div>
+        </div>
+
+        <!-- 2. MODEL STATS RECAP -->
+        <div class="card"
+            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            <div>
+                <h3 style="color: var(--accent2);">{{ algorithm.replace('_', ' ').capitalize() }}</h3>
+                <p style="color: var(--text-muted);">Trained for <strong>{{ problem_type.capitalize() }}</strong></p>
+            </div>
+            <div style="text-align: right;">
+                <span class="pill-ok" style="font-size: 1.2rem; padding: 10px 25px;">
+                    🎯 Performance Metric:
+                    <strong>
+                        {% if problem_type == 'classification' %}
+                        {{ metrics.accuracy * 100 }}% Accuracy
+                        {% elif problem_type == 'regression' %}
+                        {{ metrics.r2 }} R² Score
+                        {% elif problem_type == 'clustering' %}
+                        {{ metrics.silhouette }} Silhouette
+                        {% endif %}
+                    </strong>
+                </span>
+            </div>
+        </div>
+
+        <!-- 3. FINAL DOWNLOADS -->
+        <div class="card" style="border-top: 4px solid var(--accent); background: rgba(108, 99, 255, 0.03);">
+            <h3>🚀 Final Deliverables</h3>
+            <p style="margin-bottom: 25px; color: var(--text-muted);">Download your assets for use in external Python
+                scripts, reports, or web apps.</p>
+
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <a href="/export_model" class="btn-primary"
+                    style="flex: 1; min-width: 250px; text-align: center; font-size: 1.1rem; padding: 18px;">
+                    💾 Download Trained Model (.pkl)
+                </a>
+                <a href="/export_data" class="btn-secondary"
+                    style="flex: 1; min-width: 250px; text-align: center; font-size: 1.1rem; padding: 18px;">
+                    📥 Download Cleaned Dataset (.csv)
+                </a>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="/" style="color: var(--accent2); font-weight: 600;">← Back to Home to start new project</a>
+        </div>
+
+    </div>
+
+    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+</body>
+
+</html>

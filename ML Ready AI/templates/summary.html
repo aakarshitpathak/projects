@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Summary — ML Ready AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* ── Summary-specific styles ── */
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 18px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 18px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 6px;
+        }
+
+        /* Missing value pill */
+        .pill-ok {
+            background: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+            border: 1px solid #22c55e;
+            border-radius: 50px;
+            padding: 3px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .pill-warn {
+            background: rgba(234, 179, 8, 0.15);
+            color: #fde047;
+            border: 1px solid #eab308;
+            border-radius: 50px;
+            padding: 3px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .pill-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid #ef4444;
+            border-radius: 50px;
+            padding: 3px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        /* dtype badge */
+        .dtype-badge {
+            background: rgba(108, 99, 255, 0.15);
+            color: var(--accent2);
+            border-radius: 6px;
+            padding: 2px 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        /* Stats table scroll wrapper */
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        /* Section header */
+        .sec-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .sec-header h2 {
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .sec-header .pill-count {
+            background: rgba(108, 99, 255, 0.15);
+            color: var(--accent);
+            border-radius: 50px;
+            padding: 2px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* Next steps bar */
+        .next-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/upload">Upload</a>
+            <a href="/summary" class="active">Summary</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+
+        <!-- Page title + file name -->
+        <h1 class="page-title">📊 Data Summary</h1>
+        <p class="page-subtitle">
+            File: <strong style="color:var(--accent2)">{{ filename }}</strong>
+        </p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for cat, msg in messages %}
+        <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endfor %}{% endif %}
+        {% endwith %}
+
+        <!-- ── 1. KEY METRICS ───────────────────────────── -->
+        <div class="metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">{{ summary.rows }}</div>
+                <div class="metric-label">Rows</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ summary.cols }}</div>
+                <div class="metric-label">Columns</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">
+                    {{ summary.columns_info | selectattr('missing', '>', 0) | list | length }}
+                </div>
+                <div class="metric-label">Cols with Missing</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ summary.stats | length }}</div>
+                <div class="metric-label">Numeric Cols</div>
+            </div>
+        </div>
+
+        <!-- ── 2. COLUMN INFO TABLE ─────────────────────── -->
+        <div class="card">
+            <div class="sec-header">
+                <h2>🗂️ Column Information</h2>
+                <span class="pill-count">{{ summary.cols }} columns</span>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Column Name</th>
+                            <th>Data Type</th>
+                            <th>Missing Values</th>
+                            <th>Missing %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for col in summary.columns_info %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td><strong>{{ col.name }}</strong></td>
+                            <td><span class="dtype-badge">{{ col.dtype }}</span></td>
+                            <td>
+                                {% if col.missing == 0 %}
+                                <span class="pill-ok">✔ None</span>
+                                {% elif col.missing_pct < 20 %} <span class="pill-warn">⚠ {{ col.missing }}</span>
+                                    {% else %}
+                                    <span class="pill-danger">✖ {{ col.missing }}</span>
+                                    {% endif %}
+                            </td>
+                            <td>{{ col.missing_pct }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── 3. DESCRIPTIVE STATISTICS ───────────────── -->
+        {% if summary.stats %}
+        <div class="card">
+            <div class="sec-header">
+                <h2>📈 Descriptive Statistics</h2>
+                <span class="pill-count">Numeric columns only</span>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Count</th>
+                            <th>Mean</th>
+                            <th>Std Dev</th>
+                            <th>Min</th>
+                            <th>25%</th>
+                            <th>50% (Median)</th>
+                            <th>75%</th>
+                            <th>Max</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for col, s in summary.stats.items() %}
+                        <tr>
+                            <td><strong>{{ col }}</strong></td>
+                            <td>{{ s.get('count', '—') }}</td>
+                            <td>{{ s.get('mean', '—') }}</td>
+                            <td>{{ s.get('std', '—') }}</td>
+                            <td>{{ s.get('min', '—') }}</td>
+                            <td>{{ s.get('25%', '—') }}</td>
+                            <td>{{ s.get('50%', '—') }}</td>
+                            <td>{{ s.get('75%', '—') }}</td>
+                            <td>{{ s.get('max', '—') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <p style="color:var(--text-muted)">⚠️ No numeric columns found — statistics table is not available.</p>
+        </div>
+        {% endif %}
+
+        <!-- ── 4. DATA PREVIEW (first 5 rows) ───────────── -->
+        <div class="card">
+            <div class="sec-header">
+                <h2>👁️ Data Preview</h2>
+                <span class="pill-count">First 5 rows</span>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            {% for col in summary.preview_cols %}
+                            <th>{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in summary.preview_rows %}
+                        <tr>
+                            {% for val in row %}
+                            <td>{{ val }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── 5. NEXT STEPS ─────────────────────────────── -->
+        <div class="card" style="border-left: 3px solid var(--accent2);">
+            <h3 style="margin-bottom:14px">⚡ What would you like to do next?</h3>
+            <div class="next-bar">
+                <a href="/eda" class="btn-primary" style="font-size:0.9rem; padding:11px 24px;">📊 Explore Data
+                    (EDA)</a>
+                <a href="/cleaning" class="btn-secondary" style="font-size:0.9rem; padding:11px 24px;">🧹 Clean Data</a>
+            </div>
+        </div>
+
+    </div><!-- /page-container -->
+
+    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+</body>
+
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDA Visualizations — ML Ready AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .plot-container {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .plot-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            background: #1a1f36;
+            padding: 10px;
+        }
+
+        .plot-desc {
+            margin-top: 15px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .no-plot {
+            padding: 40px;
+            text-align: center;
+            background: var(--surface);
+            border-radius: var(--radius);
+            color: var(--text-muted);
+            border: 1px dashed var(--border);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/upload">Upload</a>
+            <a href="/summary">Summary</a>
+            <a href="/eda" class="active">EDA</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <h1 class="page-title">📈 Exploratory Data Analysis</h1>
+        <p class="page-subtitle">Visualising distributions and relationships in <strong style="color:var(--accent2)">{{
+                filename }}</strong></p>
+
+        <!-- 1. NUMERIC DISTRIBUTIONS -->
+        <div class="card">
+            <div class="sec-header">
+                <h2>📊 Numeric Distributions</h2>
+            </div>
+            {% if plots.histograms %}
+            <div class="plot-container">
+                <img src="data:image/png;base64,{{ plots.histograms }}" class="plot-img" alt="Histograms">
+                <p class="plot-desc">These histograms show the frequency of values in your numeric columns. The curve
+                    (KDE) represents the estimated density distribution.</p>
+            </div>
+            {% else %}
+            <div class="no-plot">No numeric columns found to visualize.</div>
+            {% endif %}
+        </div>
+
+        <!-- 2. CATEGORICAL COUNTS -->
+        <div class="card">
+            <div class="sec-header">
+                <h2>📊 Categorical Overviews</h2>
+            </div>
+            {% if plots.bar_charts %}
+            <div class="plot-container">
+                <img src="data:image/png;base64,{{ plots.bar_charts }}" class="plot-img" alt="Bar Charts">
+                <p class="plot-desc">These bar charts show the distribution of unique values for your categorical
+                    columns (top 10 categories shown).</p>
+            </div>
+            {% else %}
+            <div class="no-plot">No categorical columns found to visualize.</div>
+            {% endif %}
+        </div>
+
+        <!-- 3. CORRELATION HEATMAP -->
+        <div class="card">
+            <div class="sec-header">
+                <h2>🔥 Correlation Heatmap</h2>
+            </div>
+            {% if plots.heatmap %}
+            <div class="plot-container">
+                <img src="data:image/png;base64,{{ plots.heatmap }}" class="plot-img" alt="Heatmap">
+                <p class="plot-desc">The heatmap shows how strongly numeric features are related. A value near 1 or -1
+                    indicates a strong relationship.</p>
+            </div>
+            {% else %}
+            <div class="no-plot">At least two numeric columns are required to generate a correlation heatmap.</div>
+            {% endif %}
+        </div>
+
+        <!-- NEXT STEPS -->
+        <div class="card" style="border-left: 3px solid var(--accent2);">
+            <h3 style="margin-bottom:14px">⚡ Ready to clean?</h3>
+            <div class="next-bar">
+                <a href="/cleaning" class="btn-primary" style="font-size:0.9rem; padding:11px 24px;">🧹 Go to Data
+                    Cleaning</a>
+                <a href="/summary" class="btn-secondary" style="font-size:0.9rem; padding:11px 24px;">🔙 Back to
+                    Summary</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+</body>
+
+</html>

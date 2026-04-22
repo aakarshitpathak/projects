@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Selection — ML Ready AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .algo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .algo-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 25px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            position: relative;
+        }
+
+        .algo-card:hover {
+            border-color: var(--accent);
+            background: rgba(108, 99, 255, 0.05);
+        }
+
+        .algo-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+
+        .algo-card h3 {
+            color: var(--accent2);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .algo-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .algo-card.selected {
+            border: 2px solid var(--accent);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/upload">Upload</a>
+            <a href="/summary">Summary</a>
+            <a href="/eda">EDA</a>
+            <a href="/cleaning">Cleaning</a>
+            <a href="/feature_engineering">Engineering</a>
+            <a href="/model" class="active">Model</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <h1 class="page-title">🤖 Select Algorithm</h1>
+        <p class="page-subtitle">Based on your choice of <strong>{{ problem_type.capitalize() }}</strong>, here are the
+            best models to try.</p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for cat, msg in messages %}
+        <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endfor %}{% endif %}
+        {% endwith %}
+
+        <form action="/algorithm_selection" method="POST">
+            <div class="algo-grid">
+                {% if problem_type == 'classification' %}
+                <label class="algo-card" id="card-logistic">
+                    <input type="radio" name="algorithm" value="logistic_regression" required
+                        onclick="selectAlgo('logistic')">
+                    <h3>Logistic Regression</h3>
+                    <p>A statistical model used for binary classification. Great for simple benchmarks.</p>
+                    <span class="pill-ok">Fast</span> <span class="pill-warn">Linear</span>
+                </label>
+
+                <label class="algo-card" id="card-randomforest">
+                    <input type="radio" name="algorithm" value="random_forest" required
+                        onclick="selectAlgo('randomforest')">
+                    <h3>Random Forest Classifier</h3>
+                    <p>An ensemble of decision trees. Robust, accurate, and handles non-linear patterns well.</p>
+                    <span class="pill-ok">Robust</span> <span class="pill-ok">High Accuracy</span>
+                </label>
+
+                {% elif problem_type == 'regression' %}
+                <label class="algo-card" id="card-linear">
+                    <input type="radio" name="algorithm" value="linear_regression" required
+                        onclick="selectAlgo('linear')">
+                    <h3>Linear Regression</h3>
+                    <p>Predicts a target by finding the best linear fit between variables.</p>
+                    <span class="pill-ok">Fast</span> <span class="pill-warn">Simple</span>
+                </label>
+
+                <label class="algo-card" id="card-dtree">
+                    <input type="radio" name="algorithm" value="decision_tree" required onclick="selectAlgo('dtree')">
+                    <h3>Decision Tree Regressor</h3>
+                    <p>Uses tree-like structures to predict numerical values. Can capture non-linearities.</p>
+                    <span class="pill-ok">Flexible</span> <span class="pill-danger">Overfits easily</span>
+                </label>
+
+                {% elif problem_type == 'clustering' %}
+                <label class="algo-card" id="card-kmeans">
+                    <input type="radio" name="algorithm" value="kmeans" required onclick="selectAlgo('kmeans')">
+                    <h3>K-Means Clustering</h3>
+                    <p>Unsupervised learning algorithm that groups data points into 'K' distinct clusters.</p>
+                    <span class="pill-ok">Popular</span> <span class="pill-warn">Choose K</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <div style="margin-top: 40px; text-align: center;">
+                <button type="submit" class="btn-primary" style="width: 250px;">🚂 Train Model (Module 12) </button>
+                <br><br>
+                <a href="/model" style="color: var(--text-muted); font-size: 0.9rem;">🔙 Change Problem Type</a>
+            </div>
+        </form>
+    </div>
+
+    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+    <script>
+        function selectAlgo(id) {
+            document.querySelectorAll('.algo-card').forEach(c => c.classList.remove('selected'));
+            const card = document.getElementById('card-' + id);
+            if (card) card.classList.add('selected');
+        }
+    </script>
+</body>
+
+</html>

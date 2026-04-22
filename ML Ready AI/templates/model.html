@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Selection — ML Ready AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+
+        .problem-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+        .problem-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--accent);
+        }
+
+        .problem-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+
+        .problem-card .icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .problem-card h3 {
+            font-size: 1.4rem;
+            color: var(--accent2);
+            margin-bottom: 12px;
+        }
+
+        .problem-card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .problem-card.selected {
+            border: 2px solid var(--accent);
+            background: rgba(108, 99, 255, 0.05);
+        }
+
+        .problem-card.selected .icon {
+            filter: drop-shadow(0 0 10px var(--accent));
+        }
+
+        .target-section {
+            display: none;
+            margin-top: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/upload">Upload</a>
+            <a href="/summary">Summary</a>
+            <a href="/eda">EDA</a>
+            <a href="/cleaning">Cleaning</a>
+            <a href="/feature_engineering">Engineering</a>
+            <a href="/model" class="active">Model</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <h1 class="page-title">🤖 Machine Learning Setup</h1>
+        <p class="page-subtitle">Select the type of problem you want to solve with your data.</p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for cat, msg in messages %}
+        <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endfor %}{% endif %}
+        {% endwith %}
+
+        <form action="/model" method="POST">
+            <!-- 1. PROBLEM SELECTION (Module 10) -->
+            <div class="problem-grid">
+                <label class="problem-card" id="card-classification">
+                    <input type="radio" name="problem_type" value="classification" required
+                        onclick="updateSelection('classification')">
+                    <div class="icon">🎯</div>
+                    <h3>Classification</h3>
+                    <p>Predict a category or label.<br>(e.g. Yes/No, Spam/Not Spam, Car/Truck)</p>
+                </label>
+
+                <label class="problem-card" id="card-regression">
+                    <input type="radio" name="problem_type" value="regression" required
+                        onclick="updateSelection('regression')">
+                    <div class="icon">📈</div>
+                    <h3>Regression</h3>
+                    <p>Predict a continuous numerical value.<br>(e.g. Price, Temperature, Score)</p>
+                </label>
+
+                <label class="problem-card" id="card-clustering">
+                    <input type="radio" name="problem_type" value="clustering" required
+                        onclick="updateSelection('clustering')">
+                    <div class="icon">🧬</div>
+                    <h3>Clustering</h3>
+                    <p>Find hidden groups in data.<br>(e.g. Customer Segments, Anomaly Clusters)</p>
+                </label>
+            </div>
+
+            <!-- 2. TARGET SELECTION (Required for Classification/Regression) -->
+            <div class="target-section card" id="target-div">
+                <h3>🎯 Select Target Column</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
+                    This is the "Output" column you want the model to predict (not used for Clustering).
+                </p>
+                <div class="form-group">
+                    <label class="form-label">Target Column (y):</label>
+                    <select name="target_col" class="form-select">
+                        <option value="">-- Choose one --</option>
+                        {% for col in columns %}
+                        <option value="{{ col }}">{{ col }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; text-align: center;">
+                <button type="submit" class="btn-primary" style="width: 250px;">🚀 Next: Choose Algorithm</button>
+            </div>
+        </form>
+
+    </div>
+
+    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+    <script>
+        function updateSelection(type) {
+            // Remove selected class from all cards
+            document.querySelectorAll('.problem-card').forEach(c => c.classList.remove('selected'));
+
+            // Add selected class to chosen card
+            const selectedCard = document.getElementById('card-' + type);
+            if (selectedCard) selectedCard.classList.add('selected');
+
+            // Show or hide target selection for clustering
+            const targetDiv = document.getElementById('target-div');
+            if (type === 'clustering') {
+                targetDiv.style.display = 'none';
+            } else {
+                targetDiv.style.display = 'block';
+            }
+        }
+    </script>
+
+</body>
+
+</html>

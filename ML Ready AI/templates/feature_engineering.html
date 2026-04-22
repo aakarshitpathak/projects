@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Engineering — ML Ready AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .col-list {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            background: var(--bg);
+            margin-bottom: 20px;
+        }
+
+        .col-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .col-item:last-child {
+            border-bottom: none;
+        }
+
+        .col-item:hover {
+            background: rgba(108, 99, 255, 0.05);
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .empty-hint {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/upload">Upload</a>
+            <a href="/summary">Summary</a>
+            <a href="/eda">EDA</a>
+            <a href="/cleaning">Cleaning</a>
+            <a href="/feature_engineering" class="active">Engineering</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <h1 class="page-title">⚙️ Feature Engineering</h1>
+        <p class="page-subtitle">Transform your columns to make them ready for machine learning models.</p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for cat, msg in messages %}
+        <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endfor %}{% endif %}
+        {% endwith %}
+
+        <div class="feature-grid">
+            <!-- 1. LABEL ENCODING -->
+            <div class="card">
+                <h3>🏷️ Label Encoding</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
+                    Converts text categories into numbers (e.g. "Male/Female" → 0/1).
+                </p>
+
+                <form action="/feature_engineering" method="POST">
+                    <input type="hidden" name="action" value="label_encode">
+                    <div class="col-list">
+                        {% if features.categorical %}
+                        {% for col in features.categorical %}
+                        <label class="col-item">
+                            <input type="checkbox" name="cols" value="{{ col }}">
+                            <span>{{ col }}</span>
+                        </label>
+                        {% endfor %}
+                        {% else %}
+                        <div class="empty-hint">No categorical columns remaining! ✨</div>
+                        {% endif %}
+                    </div>
+                    {% if features.categorical %}
+                    <button type="submit" class="btn-primary" style="width: 100%;">🔄 Encode Selected</button>
+                    {% endif %}
+                </form>
+            </div>
+
+            <!-- 2. STANDARD SCALING -->
+            <div class="card">
+                <h3>📏 Standard Scaling</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
+                    Normalizes numeric values to have Mean = 0 and StdDev = 1.
+                </p>
+
+                <form action="/feature_engineering" method="POST">
+                    <input type="hidden" name="action" value="scale">
+                    <div class="col-list">
+                        {% if features.numeric %}
+                        {% for col in features.numeric %}
+                        <label class="col-item">
+                            <input type="checkbox" name="cols" value="{{ col }}">
+                            <span>{{ col }}</span>
+                        </label>
+                        {% endfor %}
+                        {% else %}
+                        <div class="empty-hint">No numeric columns found!</div>
+                        {% endif %}
+                    </div>
+                    {% if features.numeric %}
+                    <button type="submit" class="btn-secondary" style="width: 100%;">🔃 Scale Selected</button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <!-- NEXT STEPS -->
+        <div class="card" style="border-left: 3px solid var(--accent2); margin-top: 30px;">
+            <h3 style="margin-bottom:14px">⚡ Step Complete?</h3>
+            <p>Once you are happy with the feature transformations, you can move to problem selection and model
+                training.</p>
+            <div class="next-bar">
+                <a href="/model" class="btn-primary" style="font-size:0.9rem; padding:11px 24px;">🎯 Choose
+                    ML Problem Type (Module 10)</a>
+                <a href="/cleaning" class="btn-secondary" style="font-size:0.9rem; padding:11px 24px;">🔙 Back to
+                    Cleaning</a>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+</body>
+
+</html>

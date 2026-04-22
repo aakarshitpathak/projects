@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean Data — ML Ready AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .cleaning-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .stat-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .clean-action-box {
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/upload">Upload</a>
+            <a href="/summary">Summary</a>
+            <a href="/eda">EDA</a>
+            <a href="/cleaning" class="active">Cleaning</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <h1 class="page-title">🧹 Data Cleaning</h1>
+        <p class="page-subtitle">Handle missing values and prepare your data for machine learning.</p>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for cat, msg in messages %}
+        <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endfor %}{% endif %}
+        {% endwith %}
+
+        <div class="cleaning-grid">
+            <!-- 1. MISSING VALUES SUMMARY -->
+            <div class="card">
+                <h3>🔍 Missing Values Detected</h3>
+                {% if missing_stats %}
+                <ul class="stat-list">
+                    {% for col, count in missing_stats.items() %}
+                    <li class="stat-item">
+                        <span><strong>{{ col }}</strong></span>
+                        <span class="pill-danger">{{ count }} missing</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="pill-ok" style="text-align: center; padding: 20px;">
+                    ✨ No missing values detected in your dataset!
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 2. AUTO-CLEAN OPTIONS (Missing Values) -->
+            <div class="card">
+                <h3>⚙️ Missing Value Options</h3>
+                <form action="/cleaning" method="POST">
+                    <input type="hidden" name="action" value="impute">
+                    <div class="form-group">
+                        <label class="form-label">Imputation Strategy</label>
+                        <select name="strategy" class="form-select">
+                            <option value="auto">Auto (Mean for Numeric, Mode for Categorical)</option>
+                            <option value="median">Median (Median for Numeric, Mode for Categorical)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%;">🚀 Apply Imputation</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="cleaning-grid" style="margin-top: 20px;">
+            <!-- 3. OUTLIER SUMMARY -->
+            <div class="card">
+                <h3>📉 Outliers Detected (IQR)</h3>
+                {% if outlier_stats %}
+                <ul class="stat-list">
+                    {% for col, count in outlier_stats.items() %}
+                    <li class="stat-item">
+                        <span><strong>{{ col }}</strong></span>
+                        <span class="pill-warn">{{ count }} outliers</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="pill-ok" style="text-align: center; padding: 20px;">
+                    ✨ No outliers detected in your dataset!
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 4. OUTLIER ACTION BOX -->
+            <div class="card">
+                <h3>⚙️ Outlier Options</h3>
+                <form action="/cleaning" method="POST">
+                    <input type="hidden" name="action" value="outliers">
+                    <div class="form-group">
+                        <label class="form-label">Handling Strategy</label>
+                        <select name="strategy" class="form-select">
+                            <option value="remove">Remove (Delete rows with outliers)</option>
+                            <option value="cap">Cap (Clip to lower/upper bounds)</option>
+                        </select>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
+                        Using Interquartile Range (IQR) method (Lower Bound = Q1 - 1.5*IQR, Upper Bound = Q3 + 1.5*IQR).
+                    </p>
+                    <button type="submit" class="btn-primary" style="width: 100%;">🚀 Handle Outliers</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="cleaning-grid" style="margin-top: 20px;">
+            <!-- 5. DUPLICATES & INCONSISTENCY -->
+            <div class="card">
+                <h3>👥 Duplicates & Consistency</h3>
+                <ul class="stat-list">
+                    <li class="stat-item">
+                        <span><strong>Duplicate Rows:</strong></span>
+                        {% if duplicate_count > 0 %}
+                        <span class="pill-warn">{{ duplicate_count }} found</span>
+                        {% else %}
+                        <span class="pill-ok">None</span>
+                        {% endif %}
+                    </li>
+                </ul>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 15px;">
+                    It is recommended to remove duplicates to prevent bias in model training.
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>⚙️ Final Polish</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <form action="/cleaning" method="POST">
+                        <input type="hidden" name="action" value="duplicates">
+                        <button type="submit" class="btn-primary" style="width: 100%;">👥 Remove Duplicates</button>
+                    </form>
+                    <form action="/cleaning" method="POST">
+                        <input type="hidden" name="action" value="fix_inconsistent">
+                        <button type="submit" class="btn-secondary" style="width: 100%;">✨ Fix String
+                            whitespace</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEXT STEPS -->
+        {% if not missing_stats %}
+        <div class="card" style="border-left: 4px solid var(--accent); margin-top: 30px;">
+            <h3 style="margin-bottom:14px">⚡ Cleaning Checkpoint</h3>
+
+            {% if outlier_stats or duplicate_count > 0 %}
+            <p style="color: var(--text-muted); margin-bottom: 20px;">
+                ⚠️ Note: You still have some <strong style="color:var(--accent2)">outliers</strong> or <strong
+                    style="color:var(--accent2)">duplicates</strong>. While you can proceed, handling them is
+                recommended for better model accuracy.
+            </p>
+            {% else %}
+            <p>✨ Your dataset is looking great and fully cleaned!</p>
+            {% endif %}
+
+            <div class="next-bar">
+                <a href="/feature_engineering" class="btn-primary" style="font-size:0.9rem; padding:11px 24px;">⚙️
+                    Feature Engineering</a>
+                <a href="/eda" class="btn-secondary" style="font-size:0.9rem; padding:11px 24px;">📊 Back to EDA</a>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+</body>
+
+</html>
