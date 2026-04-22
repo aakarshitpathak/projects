@@ -26,10 +26,6 @@ class User(db.Model):
 with app.app_context():
     db.create_all()
 
-# ── App config ────────────────────────────────────────────── 
-app = Flask(__name__) 
-app.secret_key = 'mlreadyai_secret_2025'   # needed for flash & session 
-# Folder where uploaded files are stored temporarily 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads') 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True) 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER 
