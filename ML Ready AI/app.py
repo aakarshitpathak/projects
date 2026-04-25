@@ -200,6 +200,7 @@ def get_summary(df: pd.DataFrame) -> dict:
  
     # ── Descriptive statistics (numeric columns only) ────── 
     # Transpose so each column becomes a row → easier to loop in Jinja 
+    
     desc = df.describe(include='number')    # rows: count mean std min 25% 50% 75% max 
     stats_dict = desc.round(3).to_dict()    # {col_name: {stat: val, ...}} 
  
