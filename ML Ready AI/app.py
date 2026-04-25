@@ -64,8 +64,7 @@ def upload():
  
         # 3. Validate extension 
         if not allowed_file(file.filename): 
-            flash('Unsupported file format. Please upload CSV, Excel, JSON, XML or HTML.', 
-'error') 
+            flash('Unsupported file format. Please upload CSV, Excel, JSON, XML or HTML.', 'error') 
             return redirect(url_for('upload')) 
  
         # 4. Save the file safely 
