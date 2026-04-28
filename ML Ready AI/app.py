@@ -129,7 +129,6 @@ def eda():
  
 # ── PLACEHOLDER routes (will be filled in future modules) ─── 
  
-
 """ 
 modules/data_loader.py — MODULE 3 
 Reads the uploaded file into a Pandas DataFrame. 
