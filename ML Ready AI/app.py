@@ -12,7 +12,6 @@ from modules.data_summary import get_summary
 from modules.eda import generate_visualizations
 
 
-
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Required for flashing messages
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
