@@ -41,7 +41,6 @@ def set_df(df: pd.DataFrame):
     """Save a DataFrame into the in-memory store.""" 
     _store['df'] = df 
  
- 
 # ── MODULE 2 & 3 — Upload + Parse ─────────────────────────── 
 @app.route('/upload', methods=['GET', 'POST']) 
 def upload(): 
