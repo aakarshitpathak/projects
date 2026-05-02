@@ -1,12 +1,12 @@
 // Toggle Forms
 function showSignup() {
-    document.getElementById("loginForm").style.display = "none";
-    document.getElementById("signupForm").style.display = "block";
+    document.getElementById("login").style.display = "none";
+    document.getElementById("signup").style.display = "block";
 }
 
 function showLogin() {
-    document.getElementById("loginForm").style.display = "block";
-    document.getElementById("signupForm").style.display = "none";
+    document.getElementById("login").style.display = "block";
+    document.getElementById("signup").style.display = "none";
 }
 
 // ===== YOUR NEURAL NETWORK BACKGROUND =====

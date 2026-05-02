@@ -20,6 +20,12 @@
     <nav>
         <a href="{{ url_for('home') }}">Home</a>
         <a href="{{ url_for('about') }}">About</a>
+        {% if session.get('user_id') %}
+        <a href="{{ url_for('upload') }}">Upload</a>
+        <a href="{{ url_for('logout') }}">Logout ({{ session.get('user_name', 'User') }})</a>
+        {% else %}
+        <a href="{{ url_for('login') }}">Login</a>
+        {% endif %}
     </nav>
 
     <!-- ✅ Page Content -->

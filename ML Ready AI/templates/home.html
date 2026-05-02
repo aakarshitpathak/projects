@@ -106,7 +106,7 @@
   <div class="badge">// machine learning</div>
   <h1>Build the <span>Future</span><br>with AI</h1>
   <p class="sub">Explore cutting-edge algorithms, neural architectures, and data-driven models that power tomorrow's intelligent systems.</p>
-  <a class="cta" href="/login">Get Started →</a>
+  <a class="cta" href="{{ url_for('upload') if session.get('user_id') else url_for('login') }}">Get Started →</a>
 </div>
 
 <div class="code-snippet">model.fit(X_train, y_train, epochs=100)</div>
