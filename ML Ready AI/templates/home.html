@@ -2,18 +2,32 @@
 
 {% block css %}
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --cyan: #00e5ff;
+    --violet: #7b2ff7;
+    --bg-deep: #030810;
+    --bg-mid: #060f1e;
+    --bg-light: #0b1a30;
+    --text-primary: #f0f6ff;
+    --text-muted: rgba(200, 220, 255, 0.42);
+    --glow-cyan: rgba(0, 229, 255, 0.18);
+    --glow-violet: rgba(123, 47, 247, 0.18);
+  }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     min-height: 100vh;
-    background: #050d1a;
-    font-family: 'Rajdhani', sans-serif;
+    background: var(--bg-deep);
+    font-family: 'DM Sans', sans-serif;
     overflow-x: hidden;
     position: relative;
+    cursor: default;
   }
 
+  /* ── Canvas ── */
   canvas#bg {
     position: fixed;
     top: 0; left: 0;
@@ -21,6 +35,103 @@
     z-index: 0;
   }
 
+  /* ── Noise overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    opacity: 0.028;
+  }
+
+  /* ── Ambient orbs ── */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(90px);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .orb-1 {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, rgba(0,229,255,0.09) 0%, transparent 70%);
+    top: -120px; left: -100px;
+    animation: drift1 18s ease-in-out infinite alternate;
+  }
+  .orb-2 {
+    width: 460px; height: 460px;
+    background: radial-gradient(circle, rgba(123,47,247,0.12) 0%, transparent 70%);
+    bottom: -80px; right: -80px;
+    animation: drift2 22s ease-in-out infinite alternate;
+  }
+  .orb-3 {
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(0,229,255,0.06) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    animation: drift3 14s ease-in-out infinite alternate;
+  }
+
+  @keyframes drift1 { to { transform: translate(40px, 60px); } }
+  @keyframes drift2 { to { transform: translate(-50px, -40px); } }
+  @keyframes drift3 { to { transform: translate(-50%, calc(-50% + 30px)) scale(1.15); } }
+
+  /* ── Header bar ── */
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.4rem 3rem;
+    backdrop-filter: blur(12px) saturate(1.4);
+    background: rgba(3, 8, 16, 0.55);
+    border-bottom: 1px solid rgba(0, 229, 255, 0.07);
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+    animation: blink 2.4s ease-in-out infinite;
+  }
+  @keyframes blink {
+    0%,100% { opacity: 1; box-shadow: 0 0 10px var(--cyan); }
+    50% { opacity: 0.4; box-shadow: 0 0 4px var(--cyan); }
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 2.2rem;
+  }
+  nav a {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: var(--cyan); }
+
+  /* ── Main content ── */
   .content {
     position: relative;
     z-index: 10;
@@ -29,71 +140,250 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 2rem;
+    padding: 7rem 2rem 5rem;
     text-align: center;
   }
 
+  /* ── Badge ── */
   .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
     font-family: 'Share Tech Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: #00e5ff;
+    font-size: 10.5px;
+    letter-spacing: 3.5px;
+    color: var(--cyan);
     text-transform: uppercase;
-    margin-bottom: 1.2rem;
-    opacity: 0.8;
+    margin-bottom: 2rem;
+    padding: 0.45rem 1.1rem;
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 2px;
+    background: rgba(0, 229, 255, 0.04);
+    backdrop-filter: blur(6px);
+    animation: fadeSlideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .badge-pulse {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+    animation: blink 1.8s ease-in-out infinite;
+    flex-shrink: 0;
   }
 
+  /* ── Heading ── */
   h1 {
-    font-size: clamp(2.5rem, 6vw, 5rem);
-    font-weight: 700;
-    color: #fff;
-    line-height: 1.1;
-    letter-spacing: -1px;
-    margin-bottom: 1.2rem;
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(3rem, 7.5vw, 6.2rem);
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.02;
+    letter-spacing: -2.5px;
+    margin-bottom: 1.6rem;
+    animation: fadeSlideDown 0.9s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  h1 span {
-    background: linear-gradient(90deg, #00e5ff, #7b2ff7);
+  h1 .word-plain {
+    display: inline-block;
+  }
+  h1 .word-gradient {
+    display: inline-block;
+    background: linear-gradient(105deg, var(--cyan) 0%, #a78bff 55%, var(--violet) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    position: relative;
+  }
+  h1 .word-gradient::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--violet));
+    border-radius: 2px;
+    opacity: 0.5;
   }
 
+  /* ── Sub text ── */
   p.sub {
-    font-size: 1.15rem;
-    color: rgba(255,255,255,0.55);
-    max-width: 520px;
-    line-height: 1.7;
-    margin-bottom: 2.5rem;
+    font-size: 1.08rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    max-width: 490px;
+    line-height: 1.8;
+    margin-bottom: 3rem;
+    letter-spacing: 0.15px;
+    animation: fadeSlideDown 1s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  .cta {
-    display: inline-block;
-    padding: 0.8rem 2.2rem;
-    border: 1px solid rgba(0,229,255,0.4);
-    border-radius: 4px;
-    color: #00e5ff;
-    font-size: 1rem;
+  /* ── CTA group ── */
+  .cta-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeSlideDown 1s 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .cta-primary {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.85rem 2.1rem;
+    border-radius: 3px;
+    color: var(--bg-deep);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
     font-weight: 600;
-    letter-spacing: 1px;
+    letter-spacing: 0.3px;
     text-decoration: none;
-    background: rgba(0,229,255,0.06);
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
+    background: var(--cyan);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 28px rgba(0,229,255,0.28), 0 2px 12px rgba(0,0,0,0.4);
   }
-  .cta:hover { background: rgba(0,229,255,0.15); border-color: #00e5ff; }
+  .cta-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .cta-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 44px rgba(0,229,255,0.42), 0 6px 20px rgba(0,0,0,0.4);
+  }
+  .cta-primary:active { transform: translateY(0); }
 
-  .code-snippet {
-    position: fixed;
-    bottom: 1.5rem;
-    left: 50%;
-    transform: translateX(-50%);
+  .arrow-icon {
+    font-style: normal;
+    font-size: 1rem;
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+  .cta-primary:hover .arrow-icon { transform: translateX(3px); }
+
+  .cta-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.85rem 1.8rem;
+    border-radius: 3px;
+    color: rgba(200,220,255,0.7);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    text-decoration: none;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(8px);
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .cta-secondary:hover {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  /* ── Stat chips ── */
+  .stats-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 3.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeSlideDown 1s 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1rem;
+    border-radius: 2px;
+    border: 1px solid rgba(0, 229, 255, 0.1);
+    background: rgba(0, 229, 255, 0.035);
+    backdrop-filter: blur(8px);
+  }
+  .stat-num {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 11px;
-    color: rgba(0,229,255,0.3);
-    letter-spacing: 1px;
-    z-index: 10;
+    font-size: 0.8rem;
+    color: var(--cyan);
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+  .stat-divider {
+    width: 1px; height: 24px;
+    background: rgba(0,229,255,0.1);
+  }
+
+  /* ── Floating code strip ── */
+  .code-strip {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 20;
+    border-top: 1px solid rgba(0, 229, 255, 0.07);
+    background: rgba(3, 8, 16, 0.65);
+    backdrop-filter: blur(10px);
+    padding: 0.6rem 0;
+    overflow: hidden;
+  }
+  .code-track {
+    display: flex;
+    gap: 4rem;
     white-space: nowrap;
+    animation: marquee 28s linear infinite;
+    width: max-content;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .code-item {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 1.5px;
+    color: rgba(0, 229, 255, 0.28);
+  }
+  .code-item .hl { color: rgba(0, 229, 255, 0.55); }
+
+  /* ── Vertical side label ── */
+  .side-label {
+    position: fixed;
+    right: 2.5rem;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    transform-origin: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: rgba(0, 229, 255, 0.2);
+    z-index: 20;
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+
+  /* ── Keyframes ── */
+  @keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    header { padding: 1.1rem 1.4rem; }
+    nav { display: none; }
+    h1 { letter-spacing: -1.5px; }
+    .side-label { display: none; }
+    .stats-row { gap: 0.4rem; }
+    .stat-chip { padding: 0.4rem 0.75rem; }
   }
 </style>
 {% endblock %}
@@ -102,20 +392,100 @@
 
 <canvas id="bg"></canvas>
 
+<!-- Ambient orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    ML&nbsp;READY
+  </div>
+  <nav>
+    <a href="#">Docs</a>
+    <a href="#">Models</a>
+    <a href="#">Research</a>
+    <a href="{{ url_for('login') }}">Sign in</a>
+  </nav>
+</header>
+
+<!-- Main -->
 <div class="content">
-  <div class="badge">// machine learning</div>
-  <h1>Build the <span>Future</span><br>with AI</h1>
-  <p class="sub">Explore cutting-edge algorithms, neural architectures, and data-driven models that power tomorrow's intelligent systems.</p>
-  <a class="cta" href="{{ url_for('upload') if session.get('user_id') else url_for('login') }}">Get Started →</a>
+  <div class="badge">
+    <span class="badge-pulse"></span>
+    // machine learning infrastructure
+  </div>
+
+  <h1>
+    <span class="word-plain">Build the&nbsp;</span><span class="word-gradient">Future</span><br>
+    <span class="word-plain">with&nbsp;</span><span class="word-gradient">AI</span>
+  </h1>
+
+  <p class="sub">
+    Explore cutting-edge algorithms, neural architectures, and data-driven models that power tomorrow's intelligent systems.
+  </p>
+
+  <div class="cta-group">
+    <a class="cta-primary" href="{{ url_for('upload') if session.get('user_id') else url_for('login') }}">
+      Get Started <i class="arrow-icon">→</i>
+    </a>
+    <a class="cta-secondary" href="#">
+      View Docs
+    </a>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-chip">
+      <span class="stat-num">99.9%</span>
+      <span class="stat-label">Uptime</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-chip">
+      <span class="stat-num">50ms</span>
+      <span class="stat-label">Avg Latency</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-chip">
+      <span class="stat-num">12+</span>
+      <span class="stat-label">Model Types</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-chip">
+      <span class="stat-num">v3.1</span>
+      <span class="stat-label">Latest Build</span>
+    </div>
+  </div>
 </div>
 
-<div class="code-snippet">model.fit(X_train, y_train, epochs=100)</div>
+<!-- Scrolling code strip -->
+<div class="code-strip">
+  <div class="code-track">
+    <span class="code-item"><span class="hl">model</span>.fit(X_train, y_train, epochs=<span class="hl">100</span>)</span>
+    <span class="code-item"><span class="hl">nn</span>.Linear(<span class="hl">512</span>, <span class="hl">256</span>)</span>
+    <span class="code-item">optimizer = <span class="hl">torch</span>.optim.Adam(params, lr=<span class="hl">1e-4</span>)</span>
+    <span class="code-item">loss = <span class="hl">F</span>.cross_entropy(logits, targets)</span>
+    <span class="code-item"><span class="hl">accuracy</span>: 0.9847 &nbsp;|&nbsp; <span class="hl">loss</span>: 0.0312</span>
+    <span class="code-item">pipeline = <span class="hl">Pipeline</span>([('scaler', StandardScaler()), ('clf', SVM())])</span>
+    <!-- duplicate for seamless loop -->
+    <span class="code-item"><span class="hl">model</span>.fit(X_train, y_train, epochs=<span class="hl">100</span>)</span>
+    <span class="code-item"><span class="hl">nn</span>.Linear(<span class="hl">512</span>, <span class="hl">256</span>)</span>
+    <span class="code-item">optimizer = <span class="hl">torch</span>.optim.Adam(params, lr=<span class="hl">1e-4</span>)</span>
+    <span class="code-item">loss = <span class="hl">F</span>.cross_entropy(logits, targets)</span>
+    <span class="code-item"><span class="hl">accuracy</span>: 0.9847 &nbsp;|&nbsp; <span class="hl">loss</span>: 0.0312</span>
+    <span class="code-item">pipeline = <span class="hl">Pipeline</span>([('scaler', StandardScaler()), ('clf', SVM())])</span>
+  </div>
+</div>
 
+<!-- Side label -->
+<div class="side-label">Neural Engine · Active</div>
 
 {% endblock %}
 
 {% block js %}
 <script>
+/* ─── Canvas (original logic preserved exactly) ─── */
 const canvas = document.getElementById('bg');
 const ctx = canvas.getContext('2d');
 
@@ -139,7 +509,6 @@ function resize() {
 }
 
 function init() {
-  // Neural network layers
   const layers = [3, 5, 6, 5, 3];
   nodes = [];
   edges = [];
@@ -164,7 +533,6 @@ function init() {
     }
   });
 
-  // Edges between adjacent layers
   for (let li = 0; li < layers.length - 1; li++) {
     const fromLayer = nodes.filter(n => n.layer === li);
     const toLayer = nodes.filter(n => n.layer === li + 1);
@@ -175,7 +543,6 @@ function init() {
     });
   }
 
-  // Floating data particles
   for (let i = 0; i < 60; i++) {
     particles.push({
       x: rand(0, W), y: rand(0, H),
@@ -192,14 +559,12 @@ let frame = 0;
 function draw() {
   frame++;
 
-  // Background gradient
   const grad = ctx.createLinearGradient(0, 0, W, H);
   grad.addColorStop(0, COLORS.bg1);
   grad.addColorStop(1, COLORS.bg2);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // Subtle grid
   ctx.strokeStyle = 'rgba(0,229,255,0.03)';
   ctx.lineWidth = 0.5;
   const gridSize = 60;
@@ -210,7 +575,6 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
   }
 
-  // Floating particles (binary/data)
   particles.forEach(p => {
     p.x += p.vx; p.y += p.vy;
     if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
@@ -222,13 +586,11 @@ function draw() {
     ctx.fillText(p.char, p.x, p.y);
   });
 
-  // Randomly activate edges for signal propagation
   if (frame % 40 === 0) {
     const e = edges[Math.floor(Math.random() * edges.length)];
     e.active = true; e.activeTimer = 0; e.progress = 0;
   }
 
-  // Draw edges
   edges.forEach(e => {
     if (e.active) {
       e.activeTimer++;
@@ -245,7 +607,6 @@ function draw() {
     ctx.lineTo(e.to.x, e.to.y);
     ctx.stroke();
 
-    // Moving signal dot
     if (e.active && e.progress < 1) {
       const sx = e.from.x + (e.to.x - e.from.x) * e.progress;
       const sy = e.from.y + (e.to.y - e.from.y) * e.progress;
@@ -256,27 +617,23 @@ function draw() {
     }
   });
 
-  // Draw nodes
   nodes.forEach(n => {
     n.pulsePhase += n.pulseSpeed;
     const pulse = 1 + Math.sin(n.pulsePhase) * 0.3;
     const r = n.r * pulse;
 
-    // Outer glow ring
     const grd = ctx.createRadialGradient(n.x, n.y, r * 0.5, n.x, n.y, r * 2.5);
     grd.addColorStop(0, 'rgba(0,229,255,0.18)');
     grd.addColorStop(1, 'rgba(0,229,255,0)');
     ctx.beginPath(); ctx.arc(n.x, n.y, r * 2.5, 0, Math.PI * 2);
     ctx.fillStyle = grd; ctx.fill();
 
-    // Node core
     ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(5,13,26,0.9)'; ctx.fill();
     ctx.strokeStyle = '#00e5ff';
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Inner dot
     ctx.beginPath(); ctx.arc(n.x, n.y, r * 0.35, 0, Math.PI * 2);
     ctx.fillStyle = '#00e5ff'; ctx.fill();
   });
@@ -289,5 +646,3 @@ resize();
 draw();
 </script>
 {% endblock %}
-
-
