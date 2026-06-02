@@ -5,204 +5,765 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clean Data — ML Ready AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
+        :root {
+            --cyan:   #00e5ff;
+            --violet: #7b2ff7;
+            --pink:   #ff2d78;
+            --bg:     #030810;
+            --card-bg: rgba(6,14,28,0.82);
+            --border: rgba(0,229,255,0.12);
+            --border-hover: rgba(0,229,255,0.5);
+            --text:   #eef4ff;
+            --muted:  rgba(170,200,255,0.42);
+            --mono:   'Share Tech Mono', monospace;
+            --amber:  #fcb55c;
+            --amber-bg: rgba(252,181,92,0.08);
+            --danger: #ff5c5c;
+            --danger-bg: rgba(255,92,92,0.08);
+            --ok:     #00e5ff;
+            --ok-bg:  rgba(0,229,255,0.07);
+            --radius: 6px;
+            --radius-sm: 4px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ══ CANVAS ══ */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+        }
+
+        /* ══ AURORA BLOBS ══ */
+        .aurora { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+        .aurora-blob {
+            position: absolute; border-radius: 50%;
+            filter: blur(80px); mix-blend-mode: screen; opacity: 0.55;
+        }
+        .ab1 {
+            width: 700px; height: 500px;
+            background: radial-gradient(ellipse, rgba(0,229,255,0.18) 0%, transparent 70%);
+            top: -180px; left: -200px;
+            animation: float1 20s ease-in-out infinite alternate;
+        }
+        .ab2 {
+            width: 600px; height: 600px;
+            background: radial-gradient(ellipse, rgba(123,47,247,0.22) 0%, transparent 70%);
+            bottom: -200px; right: -150px;
+            animation: float2 25s ease-in-out infinite alternate;
+        }
+        .ab3 {
+            width: 400px; height: 400px;
+            background: radial-gradient(ellipse, rgba(255,45,120,0.12) 0%, transparent 70%);
+            top: 40%; left: 55%;
+            animation: float3 17s ease-in-out infinite alternate;
+        }
+        .ab4 {
+            width: 350px; height: 250px;
+            background: radial-gradient(ellipse, rgba(0,229,255,0.1) 0%, transparent 70%);
+            top: 60%; left: 10%;
+            animation: float1 22s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes float1 { to { transform: translate(60px,80px) scale(1.1); } }
+        @keyframes float2 { to { transform: translate(-50px,-60px) scale(1.15); } }
+        @keyframes float3 { to { transform: translate(-40px,50px) scale(0.9); } }
+
+        /* ══ NAVBAR ══ */
+        .navbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 3rem;
+            background: rgba(3,8,16,0.55);
+            backdrop-filter: blur(18px) saturate(1.5);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-brand {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800; font-size: 1.1rem;
+            color: var(--text); text-decoration: none;
+            display: flex; align-items: center; gap: 0.55rem;
+            letter-spacing: -0.5px;
+        }
+        .nav-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--cyan); box-shadow: 0 0 10px var(--cyan);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .nav-brand .accent { color: var(--cyan); }
+        .nav-links { display: flex; gap: 2rem; }
+        .nav-links a {
+            font-size: 0.84rem; font-weight: 500;
+            color: var(--muted); text-decoration: none; transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--cyan); }
+        .nav-links a.active { color: var(--cyan); }
+
+        @keyframes pulse {
+            0%,100% { box-shadow: 0 0 10px var(--cyan); opacity:1; }
+            50%      { box-shadow: 0 0 3px var(--cyan); opacity:0.4; }
+        }
+
+        /* ══ PAGE ══ */
+        .page-container {
+            position: relative; z-index: 10;
+            max-width: 1020px; margin: 0 auto;
+            padding: 7rem 2rem 5rem;
+        }
+
+        /* ══ PAGE HEADER ══ */
+        .page-header { margin-bottom: 2rem; animation: riseIn 0.8s cubic-bezier(0.16,1,0.3,1) both; }
+
+        .eyebrow {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            font-family: var(--mono); font-size: 10px;
+            letter-spacing: 3.5px; color: var(--cyan); text-transform: uppercase;
+            padding: 0.4rem 1rem;
+            border: 1px solid rgba(0,229,255,0.18); border-radius: 2px;
+            background: rgba(0,229,255,0.04); backdrop-filter: blur(8px);
+            margin-bottom: 1rem;
+        }
+        .eyebrow-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: var(--cyan); box-shadow: 0 0 6px var(--cyan);
+            animation: pulse 1.8s ease-in-out infinite;
+        }
+
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 800; letter-spacing: -2px; line-height: 1.04;
+            color: var(--text); margin-bottom: 0.6rem;
+        }
+        .page-title .grad {
+            background: linear-gradient(110deg, var(--cyan) 0%, #b48bff 50%, var(--violet) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .page-subtitle {
+            font-size: 0.9rem; font-weight: 300; color: var(--muted);
+        }
+
+        /* ══ PROGRESS STEPS ══ */
+        .progress-steps {
+            display: flex; align-items: center;
+            margin-bottom: 2rem;
+            background: rgba(6,14,28,0.7);
+            border: 1px solid var(--border); border-radius: 40px;
+            padding: 5px; width: fit-content;
+            animation: riseIn 0.8s 0.05s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        .step {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 13px; border-radius: 40px;
+            font-size: 11px; font-weight: 500; color: rgba(170,200,255,0.25);
+        }
+        .step.done { color: var(--muted); }
+        .step.active { background: rgba(0,229,255,0.1); color: var(--cyan); }
+        .step-num {
+            width: 18px; height: 18px; border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+            display: flex; align-items: center; justify-content: center; font-size: 9px;
+        }
+        .step.done .step-num { background: rgba(0,229,255,0.1); color: var(--cyan); }
+        .step.active .step-num { background: var(--cyan); color: #030810; font-weight: 700; }
+        .step-sep { color: rgba(170,200,255,0.2); font-size: 12px; padding: 0 2px; }
+
+        /* ══ FLASH ══ */
+        .flash {
+            padding: 0.75rem 1.2rem; border-radius: 3px;
+            font-size: 0.87rem; font-weight: 500;
+            margin-bottom: 1rem; border: 1px solid;
+        }
+        .flash.error   { background: rgba(255,60,80,0.08); border-color: rgba(255,60,80,0.3); color: #ff8090; }
+        .flash.success { background: var(--ok-bg); border-color: rgba(0,229,255,0.25); color: var(--cyan); }
+        .flash.warning { background: var(--amber-bg); border-color: rgba(252,181,92,0.25); color: var(--amber); }
+
+        /* ══ SECTION LABEL ══ */
+        .section-label {
+            font-family: var(--mono);
+            font-size: 9px; font-weight: 600;
+            letter-spacing: 2.5px; text-transform: uppercase;
+            color: rgba(0,229,255,0.35);
+            margin-bottom: 0.65rem; margin-top: 0.2rem;
+        }
+
+        /* ══ GRID ══ */
         .cleaning-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 14px; margin-bottom: 14px;
         }
+        @media (max-width: 680px) { .cleaning-grid { grid-template-columns: 1fr; } }
 
-        .stat-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .stat-item:last-child {
-            border-bottom: none;
-        }
-
-        .clean-action-box {
-            background: var(--bg-alt);
+        /* ══ CARD ══ */
+        .card {
+            background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 20px;
+            padding: 1.4rem 1.5rem;
+            backdrop-filter: blur(22px) saturate(1.3);
+            box-shadow: 0 0 0 1px rgba(0,229,255,0.03), 0 20px 60px rgba(0,0,0,0.5),
+                        inset 0 1px 0 rgba(255,255,255,0.03);
+            position: relative; overflow: hidden;
+            transition: border-color 0.25s;
+        }
+        .card:hover { border-color: rgba(0,229,255,0.28); }
+
+        /* HUD corner brackets */
+        .card::before {
+            content:''; position:absolute; top:0; left:0;
+            width:50px; height:50px;
+            border-top: 1px solid rgba(0,229,255,0.3);
+            border-left: 1px solid rgba(0,229,255,0.3);
+            pointer-events:none;
+        }
+        .card::after {
+            content:''; position:absolute; bottom:0; right:0;
+            width:38px; height:38px;
+            border-bottom: 1px solid rgba(123,47,247,0.3);
+            border-right: 1px solid rgba(123,47,247,0.3);
+            pointer-events:none;
+        }
+
+        .card h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 13px; font-weight: 700;
+            color: var(--text); margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 8px;
+            letter-spacing: -0.2px;
+        }
+        .card h3 .icon {
+            width: 26px; height: 26px; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; flex-shrink: 0;
+        }
+        .icon-purple { background: rgba(123,47,247,0.15); }
+        .icon-amber  { background: rgba(252,181,92,0.10); }
+        .icon-pink   { background: rgba(255,45,120,0.10); }
+        .icon-teal   { background: rgba(0,229,255,0.08); }
+
+        /* ══ STAT LIST ══ */
+        .stat-list { list-style: none; }
+        .stat-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 0; border-bottom: 1px solid rgba(0,229,255,0.07);
+            font-size: 13px;
+        }
+        .stat-item:last-child { border-bottom: none; }
+        .stat-item strong { color: var(--text); font-weight: 500; }
+
+        /* ══ PILLS ══ */
+        .pill-danger {
+            font-size: 10.5px; font-weight: 600; padding: 2px 10px;
+            border-radius: 20px; background: var(--danger-bg); color: var(--danger);
+            border: 1px solid rgba(255,92,92,0.2); font-family: var(--mono); letter-spacing: 0.3px;
+        }
+        .pill-warn {
+            font-size: 10.5px; font-weight: 600; padding: 2px 10px;
+            border-radius: 20px; background: var(--amber-bg); color: var(--amber);
+            border: 1px solid rgba(252,181,92,0.2); font-family: var(--mono); letter-spacing: 0.3px;
+        }
+        .pill-ok {
+            font-size: 12px; font-weight: 500; padding: 12px 14px;
+            border-radius: var(--radius-sm); background: var(--ok-bg); color: var(--cyan);
+            border: 1px solid rgba(0,229,255,0.15); display: block;
+        }
+
+        /* ══ FORM ══ */
+        .form-group { margin-bottom: 1.1rem; }
+        .form-label {
+            display: block; font-family: var(--mono);
+            font-size: 9px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1.8px;
+            color: var(--muted); margin-bottom: 7px;
+        }
+        .form-select {
+            width: 100%; padding: 9px 13px;
+            font-family: 'DM Sans', sans-serif; font-size: 13px;
+            color: var(--text); background: rgba(0,229,255,0.03);
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            outline: none; cursor: pointer; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 12px center;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .form-select:focus { border-color: var(--cyan); background-color: rgba(0,229,255,0.05); }
+        .form-select option { background: #0a1020; }
+
+        .hint {
+            font-size: 11px; color: var(--muted); line-height: 1.6;
+            margin-bottom: 1rem; padding: 9px 12px;
+            background: rgba(0,229,255,0.03);
+            border-radius: var(--radius-sm);
+            border-left: 2px solid rgba(0,229,255,0.2);
+            font-family: var(--mono); letter-spacing: 0.2px;
+        }
+
+        /* ══ BUTTONS ══ */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 7px; width: 100%; padding: 10px 18px;
+            font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+            color: #030810; background: var(--cyan);
+            border: none; border-radius: var(--radius-sm); cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s; text-decoration: none;
+            box-shadow: 0 0 24px rgba(0,229,255,0.22);
+            letter-spacing: 0.2px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(0,229,255,0.38);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-secondary {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 7px; width: 100%; padding: 10px 18px;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+            color: var(--muted); background: transparent;
+            border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer;
+            transition: border-color 0.2s, color 0.2s, background 0.2s; text-decoration: none;
+        }
+        .btn-secondary:hover {
+            color: var(--cyan); border-color: rgba(0,229,255,0.4);
+            background: rgba(0,229,255,0.04);
+        }
+
+        .btn-stack { display: flex; flex-direction: column; gap: 10px; }
+
+        /* ══ CHECKPOINT ══ */
+        .checkpoint-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(0,229,255,0.2);
+            border-radius: var(--radius); padding: 1.5rem;
             margin-top: 20px;
+            backdrop-filter: blur(22px);
+            box-shadow: 0 0 40px rgba(0,229,255,0.06), 0 20px 60px rgba(0,0,0,0.5);
+            position: relative; overflow: hidden;
+        }
+        .checkpoint-card::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 60px; height: 60px;
+            border-top: 1px solid rgba(0,229,255,0.4);
+            border-left: 1px solid rgba(0,229,255,0.4);
+            pointer-events: none;
+        }
+        .checkpoint-card h3 {
+            font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800;
+            color: var(--text); margin-bottom: 0.5rem; letter-spacing: -0.3px;
+        }
+        .checkpoint-card p {
+            font-size: 13px; color: var(--muted);
+            margin-bottom: 1.25rem; line-height: 1.65; max-width: 520px;
+        }
+        .next-bar { display: flex; gap: 10px; flex-wrap: wrap; }
+        .next-bar .btn-primary,
+        .next-bar .btn-secondary { width: auto; padding: 10px 22px; }
+
+        /* ══ FOOTER ══ */
+        footer {
+            position: relative; z-index: 10;
+            text-align: center; padding: 1.5rem;
+            font-family: var(--mono); font-size: 10px;
+            letter-spacing: 2.5px; color: rgba(0,229,255,0.16); text-transform: uppercase;
+        }
+
+        /* ══ ANIMATIONS ══ */
+        @keyframes riseIn {
+            from { opacity:0; transform:translateY(22px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .cleaning-grid:nth-of-type(1) { animation: riseIn 0.7s 0.10s cubic-bezier(0.16,1,0.3,1) both; }
+        .cleaning-grid:nth-of-type(2) { animation: riseIn 0.7s 0.17s cubic-bezier(0.16,1,0.3,1) both; }
+        .cleaning-grid:nth-of-type(3) { animation: riseIn 0.7s 0.24s cubic-bezier(0.16,1,0.3,1) both; }
+        .checkpoint-card { animation: riseIn 0.7s 0.30s cubic-bezier(0.16,1,0.3,1) both; }
+
+        @media (max-width:600px) {
+            .navbar { padding:1rem 1.2rem; }
+            .nav-links { gap:1.2rem; }
+            .page-container { padding: 5.5rem 1.2rem 4rem; }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
-        <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/upload">Upload</a>
-            <a href="/summary">Summary</a>
-            <a href="/eda">EDA</a>
-            <a href="/cleaning" class="active">Cleaning</a>
-        </div>
-    </nav>
+<!-- ══ ANIMATED CANVAS ══ -->
+<canvas id="bg-canvas"></canvas>
 
-    <div class="page-container">
-        <h1 class="page-title">🧹 Data Cleaning</h1>
-        <p class="page-subtitle">Handle missing values and prepare your data for machine learning.</p>
+<!-- ══ AURORA MESH ══ -->
+<div class="aurora">
+    <div class="aurora-blob ab1"></div>
+    <div class="aurora-blob ab2"></div>
+    <div class="aurora-blob ab3"></div>
+    <div class="aurora-blob ab4"></div>
+</div>
 
-        <!-- Flash messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}{% for cat, msg in messages %}
-        <div class="flash {{ cat }}">{{ msg }}</div>
-        {% endfor %}{% endif %}
-        {% endwith %}
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar">
+    <a class="nav-brand" href="/">
+        <span class="nav-dot"></span>
+        ML <span class="accent">Ready</span> AI
+    </a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/upload">Upload</a>
+        <a href="/summary">Summary</a>
+        <a href="/eda">EDA</a>
+        <a href="/cleaning" class="active">Cleaning</a>
+    </div>
+</nav>
 
-        <div class="cleaning-grid">
-            <!-- 1. MISSING VALUES SUMMARY -->
-            <div class="card">
-                <h3>🔍 Missing Values Detected</h3>
-                {% if missing_stats %}
-                <ul class="stat-list">
-                    {% for col, count in missing_stats.items() %}
-                    <li class="stat-item">
-                        <span><strong>{{ col }}</strong></span>
-                        <span class="pill-danger">{{ count }} missing</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div class="pill-ok" style="text-align: center; padding: 20px;">
-                    ✨ No missing values detected in your dataset!
-                </div>
-                {% endif %}
-            </div>
+<div class="page-container">
 
-            <!-- 2. AUTO-CLEAN OPTIONS (Missing Values) -->
-            <div class="card">
-                <h3>⚙️ Missing Value Options</h3>
-                <form action="/cleaning" method="POST">
-                    <input type="hidden" name="action" value="impute">
-                    <div class="form-group">
-                        <label class="form-label">Imputation Strategy</label>
-                        <select name="strategy" class="form-select">
-                            <option value="auto">Auto (Mean for Numeric, Mode for Categorical)</option>
-                            <option value="median">Median (Median for Numeric, Mode for Categorical)</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn-primary" style="width: 100%;">🚀 Apply Imputation</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="cleaning-grid" style="margin-top: 20px;">
-            <!-- 3. OUTLIER SUMMARY -->
-            <div class="card">
-                <h3>📉 Outliers Detected (IQR)</h3>
-                {% if outlier_stats %}
-                <ul class="stat-list">
-                    {% for col, count in outlier_stats.items() %}
-                    <li class="stat-item">
-                        <span><strong>{{ col }}</strong></span>
-                        <span class="pill-warn">{{ count }} outliers</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div class="pill-ok" style="text-align: center; padding: 20px;">
-                    ✨ No outliers detected in your dataset!
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- 4. OUTLIER ACTION BOX -->
-            <div class="card">
-                <h3>⚙️ Outlier Options</h3>
-                <form action="/cleaning" method="POST">
-                    <input type="hidden" name="action" value="outliers">
-                    <div class="form-group">
-                        <label class="form-label">Handling Strategy</label>
-                        <select name="strategy" class="form-select">
-                            <option value="remove">Remove (Delete rows with outliers)</option>
-                            <option value="cap">Cap (Clip to lower/upper bounds)</option>
-                        </select>
-                    </div>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
-                        Using Interquartile Range (IQR) method (Lower Bound = Q1 - 1.5*IQR, Upper Bound = Q3 + 1.5*IQR).
-                    </p>
-                    <button type="submit" class="btn-primary" style="width: 100%;">🚀 Handle Outliers</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="cleaning-grid" style="margin-top: 20px;">
-            <!-- 5. DUPLICATES & INCONSISTENCY -->
-            <div class="card">
-                <h3>👥 Duplicates & Consistency</h3>
-                <ul class="stat-list">
-                    <li class="stat-item">
-                        <span><strong>Duplicate Rows:</strong></span>
-                        {% if duplicate_count > 0 %}
-                        <span class="pill-warn">{{ duplicate_count }} found</span>
-                        {% else %}
-                        <span class="pill-ok">None</span>
-                        {% endif %}
-                    </li>
-                </ul>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 15px;">
-                    It is recommended to remove duplicates to prevent bias in model training.
-                </p>
-            </div>
-
-            <div class="card">
-                <h3>⚙️ Final Polish</h3>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <form action="/cleaning" method="POST">
-                        <input type="hidden" name="action" value="duplicates">
-                        <button type="submit" class="btn-primary" style="width: 100%;">👥 Remove Duplicates</button>
-                    </form>
-                    <form action="/cleaning" method="POST">
-                        <input type="hidden" name="action" value="fix_inconsistent">
-                        <button type="submit" class="btn-secondary" style="width: 100%;">✨ Fix String
-                            whitespace</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- NEXT STEPS -->
-        {% if not missing_stats %}
-        <div class="card" style="border-left: 4px solid var(--accent); margin-top: 30px;">
-            <h3 style="margin-bottom:14px">⚡ Cleaning Checkpoint</h3>
-
-            {% if outlier_stats or duplicate_count > 0 %}
-            <p style="color: var(--text-muted); margin-bottom: 20px;">
-                ⚠️ Note: You still have some <strong style="color:var(--accent2)">outliers</strong> or <strong
-                    style="color:var(--accent2)">duplicates</strong>. While you can proceed, handling them is
-                recommended for better model accuracy.
-            </p>
-            {% else %}
-            <p>✨ Your dataset is looking great and fully cleaned!</p>
-            {% endif %}
-
-            <div class="next-bar">
-                <a href="/feature_engineering" class="btn-primary" style="font-size:0.9rem; padding:11px 24px;">⚙️
-                    Feature Engineering</a>
-                <a href="/eda" class="btn-secondary" style="font-size:0.9rem; padding:11px 24px;">📊 Back to EDA</a>
-            </div>
-        </div>
-        {% endif %}
-
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="eyebrow"><span class="eyebrow-dot"></span> // cleaning module</div>
+        <h1 class="page-title">Data <span class="grad">Cleaning</span></h1>
+        <p class="page-subtitle">Handle missing values, outliers &amp; duplicates — prepare your dataset for machine learning.</p>
     </div>
 
-    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+    <!-- PROGRESS STEPS -->
+    <div class="progress-steps">
+        <div class="step done"><div class="step-num">✓</div> Upload</div>
+        <div class="step-sep">›</div>
+        <div class="step done"><div class="step-num">✓</div> Summary</div>
+        <div class="step-sep">›</div>
+        <div class="step done"><div class="step-num">✓</div> EDA</div>
+        <div class="step-sep">›</div>
+        <div class="step active"><div class="step-num">4</div> Cleaning</div>
+        <div class="step-sep">›</div>
+        <div class="step"><div class="step-num">5</div> Features</div>
+        <div class="step-sep">›</div>
+        <div class="step"><div class="step-num">6</div> Model</div>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for cat, msg in messages %}
+    <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}{% endif %}
+    {% endwith %}
+
+    <!-- SECTION: MISSING VALUES -->
+    <div class="section-label">// missing values</div>
+    <div class="cleaning-grid">
+        <div class="card">
+            <h3><span class="icon icon-purple">🔍</span> Missing Values Detected</h3>
+            {% if missing_stats %}
+            <ul class="stat-list">
+                {% for col, count in missing_stats.items() %}
+                <li class="stat-item">
+                    <span><strong>{{ col }}</strong></span>
+                    <span class="pill-danger">{{ count }} missing</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="pill-ok">✨ No missing values detected in your dataset!</div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h3><span class="icon icon-purple">⚙️</span> Imputation Strategy</h3>
+            <form action="/cleaning" method="POST">
+                <input type="hidden" name="action" value="impute">
+                <div class="form-group">
+                    <label class="form-label">Strategy</label>
+                    <select name="strategy" class="form-select">
+                        <option value="auto">Auto — Mean (numeric) + Mode (categorical)</option>
+                        <option value="median">Median — Median (numeric) + Mode (categorical)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">🚀 Apply Imputation</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SECTION: OUTLIERS -->
+    <div class="section-label">// outlier detection</div>
+    <div class="cleaning-grid">
+        <div class="card">
+            <h3><span class="icon icon-amber">📉</span> Outliers Detected (IQR)</h3>
+            {% if outlier_stats %}
+            <ul class="stat-list">
+                {% for col, count in outlier_stats.items() %}
+                <li class="stat-item">
+                    <span><strong>{{ col }}</strong></span>
+                    <span class="pill-warn">{{ count }} outliers</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="pill-ok">✨ No outliers detected in your dataset!</div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h3><span class="icon icon-amber">⚙️</span> Outlier Handling</h3>
+            <form action="/cleaning" method="POST">
+                <input type="hidden" name="action" value="outliers">
+                <div class="form-group">
+                    <label class="form-label">Strategy</label>
+                    <select name="strategy" class="form-select">
+                        <option value="remove">Remove — delete rows with outliers</option>
+                        <option value="cap">Cap — clip to lower / upper IQR bounds</option>
+                    </select>
+                </div>
+                <div class="hint">Lower = Q1 − 1.5×IQR &nbsp;|&nbsp; Upper = Q3 + 1.5×IQR</div>
+                <button type="submit" class="btn-primary">🚀 Handle Outliers</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SECTION: DUPLICATES & POLISH -->
+    <div class="section-label">// final polish</div>
+    <div class="cleaning-grid">
+        <div class="card">
+            <h3><span class="icon icon-pink">👥</span> Duplicates &amp; Consistency</h3>
+            <ul class="stat-list">
+                <li class="stat-item">
+                    <span><strong>Duplicate Rows</strong></span>
+                    {% if duplicate_count > 0 %}
+                    <span class="pill-warn">{{ duplicate_count }} found</span>
+                    {% else %}
+                    <span class="pill-ok" style="padding:3px 10px;display:inline-block;font-size:10.5px;">None</span>
+                    {% endif %}
+                </li>
+            </ul>
+            <p style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6;">
+                Removing duplicates prevents bias and data leakage during model training.
+            </p>
+        </div>
+
+        <div class="card">
+            <h3><span class="icon icon-teal">✨</span> Cleanup Actions</h3>
+            <div class="btn-stack">
+                <form action="/cleaning" method="POST">
+                    <input type="hidden" name="action" value="duplicates">
+                    <button type="submit" class="btn-primary">👥 Remove Duplicates</button>
+                </form>
+                <form action="/cleaning" method="POST">
+                    <input type="hidden" name="action" value="fix_inconsistent">
+                    <button type="submit" class="btn-secondary">✨ Fix String Whitespace</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHECKPOINT -->
+    {% if not missing_stats %}
+    <div class="checkpoint-card">
+        <h3>⚡ Cleaning Checkpoint</h3>
+        {% if outlier_stats or duplicate_count > 0 %}
+        <p>
+            ⚠️ You still have some <strong style="color:var(--amber)">outliers</strong> or
+            <strong style="color:var(--amber)">duplicates</strong>. You can proceed, but
+            handling them is recommended for better model accuracy.
+        </p>
+        {% else %}
+        <p>✨ Your dataset is fully cleaned and model-ready. Time to engineer some features!</p>
+        {% endif %}
+        <div class="next-bar">
+            <a href="/feature_engineering" class="btn-primary">⚙️ Feature Engineering</a>
+            <a href="/eda" class="btn-secondary">📊 Back to EDA</a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<footer>ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+<script>
+/* ════════════════════════════════════
+   CANVAS: neural particles + binary rain
+   (exact same engine as upload.html)
+   ════════════════════════════════════ */
+(function () {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx    = canvas.getContext('2d');
+    let W, H, particles, columns, nodes, edges, frame = 0;
+    const CYAN   = '0,229,255';
+    const VIOLET = '123,47,247';
+
+    function rand(a, b) { return Math.random() * (b - a) + a; }
+    function randInt(a, b) { return Math.floor(rand(a, b)); }
+
+    function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+        build();
+    }
+
+    function build() {
+        /* binary rain */
+        const colW = 22;
+        columns = [];
+        const nCols = Math.ceil(W / colW);
+        for (let i = 0; i < nCols; i++) {
+            columns.push({
+                x: i * colW + colW / 2,
+                y: rand(-H, 0),
+                speed: rand(0.4, 1.2),
+                chars: Array.from({ length: randInt(8, 24) }, () => Math.random() > 0.5 ? '1' : '0'),
+                opacity: rand(0.04, 0.11),
+                active: Math.random() > 0.55,
+            });
+        }
+
+        /* floating orbs */
+        particles = [];
+        for (let i = 0; i < 55; i++) {
+            const isCyan = Math.random() > 0.4;
+            particles.push({
+                x: rand(0, W), y: rand(0, H),
+                vx: rand(-0.25, 0.25), vy: rand(-0.25, 0.25),
+                r: rand(1.2, 3.2),
+                color: isCyan ? CYAN : VIOLET,
+                opacity: rand(0.08, 0.28),
+                pulsePhase: rand(0, Math.PI * 2),
+                pulseSpeed: rand(0.008, 0.022),
+            });
+        }
+
+        /* mini neural network */
+        const layers = [2, 4, 5, 4, 2];
+        nodes = []; edges = [];
+        const xStep = W / (layers.length + 1);
+        layers.forEach((cnt, li) => {
+            const x = xStep * (li + 1);
+            const yStep = H / (cnt + 1);
+            for (let ni = 0; ni < cnt; ni++) {
+                nodes.push({
+                    x, y: yStep * (ni + 1), layer: li,
+                    r: rand(3, 5.5),
+                    pulsePhase: rand(0, Math.PI * 2),
+                    pulseSpeed: rand(0.008, 0.024),
+                });
+            }
+        });
+        for (let li = 0; li < layers.length - 1; li++) {
+            const from = nodes.filter(n => n.layer === li);
+            const to   = nodes.filter(n => n.layer === li + 1);
+            from.forEach(f => to.forEach(t => {
+                edges.push({ from: f, to: t, active: false, timer: 0, progress: 0 });
+            }));
+        }
+    }
+
+    function draw() {
+        frame++;
+        ctx.clearRect(0, 0, W, H);
+
+        /* bg gradient */
+        const bg = ctx.createLinearGradient(0, 0, W, H);
+        bg.addColorStop(0, '#030810');
+        bg.addColorStop(0.55, '#060e1c');
+        bg.addColorStop(1, '#080618');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
+
+        /* binary rain */
+        columns.forEach(col => {
+            if (!col.active) return;
+            col.y += col.speed;
+            if (col.y > H + col.chars.length * 14) col.y = rand(-200, -50);
+            col.chars.forEach((ch, i) => {
+                const cy = col.y + i * 14;
+                if (cy < -14 || cy > H + 14) return;
+                const fade = i === 0 ? 0.9 : col.opacity * (1 - i / col.chars.length);
+                ctx.font = '11px Share Tech Mono, monospace';
+                ctx.fillStyle = `rgba(${CYAN},${fade})`;
+                ctx.fillText(ch, col.x, cy);
+            });
+            if (frame % 12 === 0 && Math.random() > 0.7) {
+                const idx = randInt(0, col.chars.length);
+                col.chars[idx] = Math.random() > 0.5 ? '1' : '0';
+            }
+        });
+
+        /* particles */
+        particles.forEach(p => {
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+            if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+            p.pulsePhase += p.pulseSpeed;
+            const r = p.r * (1 + Math.sin(p.pulsePhase) * 0.3);
+            const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 3);
+            grd.addColorStop(0, `rgba(${p.color},${p.opacity})`);
+            grd.addColorStop(1, `rgba(${p.color},0)`);
+            ctx.beginPath(); ctx.arc(p.x, p.y, r * 3, 0, Math.PI * 2);
+            ctx.fillStyle = grd; ctx.fill();
+        });
+
+        /* neural edges */
+        if (frame % 50 === 0) {
+            const e = edges[randInt(0, edges.length)];
+            e.active = true; e.timer = 0; e.progress = 0;
+        }
+        edges.forEach(e => {
+            if (e.active) {
+                e.timer++;
+                e.progress = Math.min(e.timer / 70, 1);
+                if (e.timer > 90) e.active = false;
+            }
+            ctx.lineWidth = e.active ? 1.0 : 0.4;
+            ctx.strokeStyle = e.active
+                ? `rgba(${CYAN},${0.55 * (1 - Math.abs(e.progress - 0.5) * 2)})`
+                : `rgba(${CYAN},0.07)`;
+            ctx.beginPath(); ctx.moveTo(e.from.x, e.from.y); ctx.lineTo(e.to.x, e.to.y); ctx.stroke();
+            if (e.active && e.progress < 1) {
+                const sx = e.from.x + (e.to.x - e.from.x) * e.progress;
+                const sy = e.from.y + (e.to.y - e.from.y) * e.progress;
+                ctx.beginPath(); ctx.arc(sx, sy, 2.2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${CYAN},0.95)`; ctx.fill();
+            }
+        });
+
+        /* neural nodes */
+        nodes.forEach(n => {
+            n.pulsePhase += n.pulseSpeed;
+            const pulse = 1 + Math.sin(n.pulsePhase) * 0.28;
+            const r = n.r * pulse;
+            const grd = ctx.createRadialGradient(n.x, n.y, r * 0.4, n.x, n.y, r * 2.8);
+            grd.addColorStop(0, `rgba(${CYAN},0.14)`); grd.addColorStop(1, `rgba(${CYAN},0)`);
+            ctx.beginPath(); ctx.arc(n.x, n.y, r * 2.8, 0, Math.PI * 2);
+            ctx.fillStyle = grd; ctx.fill();
+            ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(3,8,16,0.88)'; ctx.fill();
+            ctx.strokeStyle = `rgba(${CYAN},0.75)`; ctx.lineWidth = 0.8; ctx.stroke();
+            ctx.beginPath(); ctx.arc(n.x, n.y, r * 0.32, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${CYAN},1)`; ctx.fill();
+        });
+
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    draw();
+})();
+</script>
 
 </body>
-
 </html>
