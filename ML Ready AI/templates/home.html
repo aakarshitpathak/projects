@@ -14,6 +14,8 @@
     --text-muted: rgba(200, 220, 255, 0.42);
     --glow-cyan: rgba(0, 229, 255, 0.18);
     --glow-violet: rgba(123, 47, 247, 0.18);
+    --border: rgba(0,229,255,0.1);
+    --mono: 'Share Tech Mono', monospace;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,7 +29,6 @@
     cursor: default;
   }
 
-  /* ── Canvas ── */
   canvas#bg {
     position: fixed;
     top: 0; left: 0;
@@ -35,355 +36,318 @@
     z-index: 0;
   }
 
-  /* ── Noise overlay ── */
   body::before {
     content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
     background-size: 180px 180px;
     opacity: 0.028;
   }
 
-  /* ── Ambient orbs ── */
-  .orb {
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(90px);
-    pointer-events: none;
-    z-index: 2;
-  }
-  .orb-1 {
-    width: 520px; height: 520px;
-    background: radial-gradient(circle, rgba(0,229,255,0.09) 0%, transparent 70%);
-    top: -120px; left: -100px;
-    animation: drift1 18s ease-in-out infinite alternate;
-  }
-  .orb-2 {
-    width: 460px; height: 460px;
-    background: radial-gradient(circle, rgba(123,47,247,0.12) 0%, transparent 70%);
-    bottom: -80px; right: -80px;
-    animation: drift2 22s ease-in-out infinite alternate;
-  }
-  .orb-3 {
-    width: 280px; height: 280px;
-    background: radial-gradient(circle, rgba(0,229,255,0.06) 0%, transparent 70%);
-    top: 50%; left: 50%;
-    transform: translate(-50%,-50%);
-    animation: drift3 14s ease-in-out infinite alternate;
-  }
+  .orb { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 2; }
+  .orb-1 { width:520px;height:520px;background:radial-gradient(circle,rgba(0,229,255,0.09) 0%,transparent 70%);top:-120px;left:-100px;animation:drift1 18s ease-in-out infinite alternate; }
+  .orb-2 { width:460px;height:460px;background:radial-gradient(circle,rgba(123,47,247,0.12) 0%,transparent 70%);bottom:-80px;right:-80px;animation:drift2 22s ease-in-out infinite alternate; }
+  .orb-3 { width:280px;height:280px;background:radial-gradient(circle,rgba(0,229,255,0.06) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:drift3 14s ease-in-out infinite alternate; }
+  @keyframes drift1 { to { transform:translate(40px,60px); } }
+  @keyframes drift2 { to { transform:translate(-50px,-40px); } }
+  @keyframes drift3 { to { transform:translate(-50%,calc(-50% + 30px)) scale(1.15); } }
 
-  @keyframes drift1 { to { transform: translate(40px, 60px); } }
-  @keyframes drift2 { to { transform: translate(-50px, -40px); } }
-  @keyframes drift3 { to { transform: translate(-50%, calc(-50% + 30px)) scale(1.15); } }
-
-  /* ── Header bar ── */
+  /* ── Header ── */
   header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    position: fixed; top:0; left:0; right:0; z-index:50;
+    display: flex; align-items:center; justify-content:space-between;
     padding: 1.4rem 3rem;
     backdrop-filter: blur(12px) saturate(1.4);
-    background: rgba(3, 8, 16, 0.55);
-    border-bottom: 1px solid rgba(0, 229, 255, 0.07);
+    background: rgba(3,8,16,0.55);
+    border-bottom: 1px solid rgba(0,229,255,0.07);
+  }
+  .logo { font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;letter-spacing:-0.5px;color:var(--text-primary);display:flex;align-items:center;gap:0.5rem; }
+  .logo-dot { width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:blink 2.4s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1;box-shadow:0 0 10px var(--cyan);}50%{opacity:0.4;box-shadow:0 0 4px var(--cyan);} }
+  nav { display:flex;align-items:center;gap:2.2rem; }
+  nav a { font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;color:var(--text-muted);text-decoration:none;letter-spacing:0.5px;transition:color 0.2s; }
+  nav a:hover { color:var(--cyan); }
+
+  /* ── Page wrapper ── */
+  .page {
+    position: relative; z-index: 10;
   }
 
-  .logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.15rem;
-    letter-spacing: -0.5px;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .logo-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--cyan);
-    box-shadow: 0 0 10px var(--cyan);
-    animation: blink 2.4s ease-in-out infinite;
-  }
-  @keyframes blink {
-    0%,100% { opacity: 1; box-shadow: 0 0 10px var(--cyan); }
-    50% { opacity: 0.4; box-shadow: 0 0 4px var(--cyan); }
-  }
-
-  nav {
-    display: flex;
-    align-items: center;
-    gap: 2.2rem;
-  }
-  nav a {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    text-decoration: none;
-    letter-spacing: 0.5px;
-    transition: color 0.2s;
-  }
-  nav a:hover { color: var(--cyan); }
-
-  /* ── Main content ── */
-  .content {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  /* ══ HERO ══ */
+  .hero {
+    display: flex; flex-direction:column; align-items:center; justify-content:center;
     min-height: 100vh;
     padding: 7rem 2rem 5rem;
     text-align: center;
   }
 
-  /* ── Badge ── */
   .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 10.5px;
-    letter-spacing: 3.5px;
-    color: var(--cyan);
-    text-transform: uppercase;
-    margin-bottom: 2rem;
-    padding: 0.45rem 1.1rem;
-    border: 1px solid rgba(0, 229, 255, 0.2);
-    border-radius: 2px;
-    background: rgba(0, 229, 255, 0.04);
-    backdrop-filter: blur(6px);
-    animation: fadeSlideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    display:inline-flex;align-items:center;gap:0.55rem;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:3.5px;
+    color:var(--cyan);text-transform:uppercase;
+    margin-bottom:2rem;padding:0.45rem 1.1rem;
+    border:1px solid rgba(0,229,255,0.2);border-radius:2px;
+    background:rgba(0,229,255,0.04);backdrop-filter:blur(6px);
+    animation:fadeSlideDown 0.8s cubic-bezier(0.16,1,0.3,1) both;
   }
-  .badge-pulse {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--cyan);
-    box-shadow: 0 0 8px var(--cyan);
-    animation: blink 1.8s ease-in-out infinite;
-    flex-shrink: 0;
-  }
+  .badge-pulse { width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:blink 1.8s ease-in-out infinite;flex-shrink:0; }
 
-  /* ── Heading ── */
   h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(3rem, 7.5vw, 6.2rem);
-    font-weight: 800;
-    color: var(--text-primary);
-    line-height: 1.02;
-    letter-spacing: -2.5px;
-    margin-bottom: 1.6rem;
-    animation: fadeSlideDown 0.9s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    font-family:'Syne',sans-serif;
+    font-size:clamp(3rem,7.5vw,6.2rem);
+    font-weight:800;color:var(--text-primary);
+    line-height:1.02;letter-spacing:-2.5px;
+    margin-bottom:1.6rem;
+    animation:fadeSlideDown 0.9s 0.1s cubic-bezier(0.16,1,0.3,1) both;
   }
-
-  h1 .word-plain {
-    display: inline-block;
-  }
+  h1 .word-plain { display:inline-block; }
   h1 .word-gradient {
-    display: inline-block;
-    background: linear-gradient(105deg, var(--cyan) 0%, #a78bff 55%, var(--violet) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    position: relative;
+    display:inline-block;
+    background:linear-gradient(105deg,var(--cyan) 0%,#a78bff 55%,var(--violet) 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    position:relative;
   }
   h1 .word-gradient::after {
-    content: '';
-    position: absolute;
-    bottom: -2px; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--cyan), var(--violet));
-    border-radius: 2px;
-    opacity: 0.5;
+    content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,var(--cyan),var(--violet));
+    border-radius:2px;opacity:0.5;
   }
 
-  /* ── Sub text ── */
   p.sub {
-    font-size: 1.08rem;
-    font-weight: 300;
-    color: var(--text-muted);
-    max-width: 490px;
-    line-height: 1.8;
-    margin-bottom: 3rem;
-    letter-spacing: 0.15px;
-    animation: fadeSlideDown 1s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    font-size:1.08rem;font-weight:300;color:var(--text-muted);
+    max-width:490px;line-height:1.8;margin-bottom:3rem;letter-spacing:0.15px;
+    animation:fadeSlideDown 1s 0.2s cubic-bezier(0.16,1,0.3,1) both;
   }
 
-  /* ── CTA group ── */
   .cta-group {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    animation: fadeSlideDown 1s 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+    display:flex;align-items:center;gap:1rem;flex-wrap:wrap;justify-content:center;
+    animation:fadeSlideDown 1s 0.32s cubic-bezier(0.16,1,0.3,1) both;
   }
-
   .cta-primary {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    padding: 0.85rem 2.1rem;
-    border-radius: 3px;
-    color: var(--bg-deep);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.92rem;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    text-decoration: none;
-    background: var(--cyan);
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 0 28px rgba(0,229,255,0.28), 0 2px 12px rgba(0,0,0,0.4);
+    position:relative;display:inline-flex;align-items:center;gap:0.55rem;
+    padding:0.85rem 2.1rem;border-radius:3px;color:var(--bg-deep);
+    font-family:'DM Sans',sans-serif;font-size:0.92rem;font-weight:600;
+    letter-spacing:0.3px;text-decoration:none;background:var(--cyan);overflow:hidden;
+    transition:transform 0.2s,box-shadow 0.2s;
+    box-shadow:0 0 28px rgba(0,229,255,0.28),0 2px 12px rgba(0,0,0,0.4);
   }
-  .cta-primary::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, transparent 60%);
-    pointer-events: none;
-  }
-  .cta-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 44px rgba(0,229,255,0.42), 0 6px 20px rgba(0,0,0,0.4);
-  }
-  .cta-primary:active { transform: translateY(0); }
-
-  .arrow-icon {
-    font-style: normal;
-    font-size: 1rem;
-    transition: transform 0.2s;
-    display: inline-block;
-  }
-  .cta-primary:hover .arrow-icon { transform: translateX(3px); }
-
+  .cta-primary::before { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.22) 0%,transparent 60%);pointer-events:none; }
+  .cta-primary:hover { transform:translateY(-2px);box-shadow:0 0 44px rgba(0,229,255,0.42),0 6px 20px rgba(0,0,0,0.4); }
+  .cta-primary:active { transform:translateY(0); }
+  .arrow-icon { font-style:normal;font-size:1rem;transition:transform 0.2s;display:inline-block; }
+  .cta-primary:hover .arrow-icon { transform:translateX(3px); }
   .cta-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.85rem 1.8rem;
-    border-radius: 3px;
-    color: rgba(200,220,255,0.7);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.92rem;
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    text-decoration: none;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.1);
-    backdrop-filter: blur(8px);
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    display:inline-flex;align-items:center;gap:0.45rem;
+    padding:0.85rem 1.8rem;border-radius:3px;
+    color:rgba(200,220,255,0.7);font-family:'DM Sans',sans-serif;
+    font-size:0.92rem;font-weight:500;letter-spacing:0.3px;text-decoration:none;
+    background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
+    backdrop-filter:blur(8px);transition:background 0.2s,color 0.2s,border-color 0.2s;
   }
-  .cta-secondary:hover {
-    background: rgba(255,255,255,0.08);
-    color: #fff;
-    border-color: rgba(255,255,255,0.2);
-  }
+  .cta-secondary:hover { background:rgba(255,255,255,0.08);color:#fff;border-color:rgba(255,255,255,0.2); }
 
-  /* ── Stat chips ── */
   .stats-row {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-top: 3.5rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    animation: fadeSlideDown 1s 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+    display:flex;align-items:center;gap:0.6rem;margin-top:3.5rem;
+    flex-wrap:wrap;justify-content:center;
+    animation:fadeSlideDown 1s 0.45s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .stat-chip { display:flex;align-items:center;gap:0.5rem;padding:0.45rem 1rem;border-radius:2px;border:1px solid rgba(0,229,255,0.1);background:rgba(0,229,255,0.035);backdrop-filter:blur(8px); }
+  .stat-num { font-family:var(--mono);font-size:0.8rem;color:var(--cyan); }
+  .stat-label { font-size:0.75rem;color:var(--text-muted);font-weight:400; }
+  .stat-divider { width:1px;height:24px;background:rgba(0,229,255,0.1); }
+
+  /* ══ SECTION SHARED ══ */
+  .section {
+    position: relative; z-index: 10;
+    max-width: 1080px; margin: 0 auto;
+    padding: 6rem 2rem;
+  }
+  .section-eyebrow {
+    display:inline-flex;align-items:center;gap:0.5rem;
+    font-family:var(--mono);font-size:9.5px;letter-spacing:3.5px;
+    color:var(--cyan);text-transform:uppercase;
+    margin-bottom:1.1rem;
+  }
+  .section-eyebrow-dot { width:5px;height:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan); }
+  .section-title {
+    font-family:'Syne',sans-serif;font-size:clamp(1.9rem,4vw,3rem);
+    font-weight:800;letter-spacing:-1.5px;line-height:1.08;
+    color:var(--text-primary);margin-bottom:0.8rem;
+  }
+  .section-title .grad {
+    background:linear-gradient(110deg,var(--cyan) 0%,#b48bff 50%,var(--violet) 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  .section-sub { font-size:0.95rem;font-weight:300;color:var(--text-muted);line-height:1.75;max-width:560px; }
+
+  /* divider line */
+  .section-divider {
+    width:100%;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(0,229,255,0.12),transparent);
+    position:relative;z-index:10;
   }
 
-  .stat-chip {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.45rem 1rem;
-    border-radius: 2px;
-    border: 1px solid rgba(0, 229, 255, 0.1);
-    background: rgba(0, 229, 255, 0.035);
-    backdrop-filter: blur(8px);
+  /* ══ HOW IT WORKS ══ */
+  .steps-grid {
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:1px;margin-top:3.5rem;
+    border:1px solid var(--border);border-radius:6px;overflow:hidden;
+    background:var(--border);
   }
-  .stat-num {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--cyan);
+  .step {
+    background:rgba(6,14,28,0.9);
+    padding:2rem 1.6rem;
+    position:relative;overflow:hidden;
+    transition:background 0.25s;
+    backdrop-filter:blur(20px);
   }
-  .stat-label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-weight: 400;
+  .step:hover { background:rgba(0,229,255,0.04); }
+  .step::before {
+    content:''; position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+    opacity:0;transition:opacity 0.3s;
   }
-  .stat-divider {
-    width: 1px; height: 24px;
-    background: rgba(0,229,255,0.1);
+  .step:hover::before { opacity:1; }
+  .step-num {
+    font-family:var(--mono);font-size:9px;letter-spacing:3px;
+    color:rgba(0,229,255,0.3);text-transform:uppercase;margin-bottom:1rem;
+  }
+  .step-icon { font-size:1.8rem;margin-bottom:0.9rem;display:block; }
+  .step-title { font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text-primary);margin-bottom:0.5rem;letter-spacing:-0.2px; }
+  .step-desc { font-size:12.5px;color:var(--text-muted);line-height:1.65;font-weight:300; }
+
+  /* connector arrow between steps on desktop */
+  .step-arrow {
+    display:none;
   }
 
-  /* ── Floating code strip ── */
+  /* ══ FEATURES ══ */
+  .features-grid {
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:16px;margin-top:3.5rem;
+  }
+  .feature-card {
+    background:rgba(6,14,28,0.82);
+    border:1px solid var(--border);border-radius:6px;
+    padding:1.8rem;position:relative;overflow:hidden;
+    backdrop-filter:blur(22px) saturate(1.3);
+    box-shadow:0 20px 60px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.03);
+    transition:border-color 0.25s,transform 0.25s,box-shadow 0.25s;
+  }
+  .feature-card:hover { border-color:rgba(0,229,255,0.3);transform:translateY(-3px);box-shadow:0 0 36px rgba(0,229,255,0.08),0 24px 60px rgba(0,0,0,0.5); }
+  .feature-card::before { content:'';position:absolute;top:0;left:0;width:44px;height:44px;border-top:1px solid rgba(0,229,255,0.22);border-left:1px solid rgba(0,229,255,0.22);pointer-events:none; }
+  .feature-card::after  { content:'';position:absolute;bottom:0;right:0;width:32px;height:32px;border-bottom:1px solid rgba(123,47,247,0.2);border-right:1px solid rgba(123,47,247,0.2);pointer-events:none; }
+  .feature-icon-wrap {
+    width:42px;height:42px;border-radius:4px;
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+    background:rgba(0,229,255,0.07);border:1px solid rgba(0,229,255,0.15);
+    margin-bottom:1.1rem;
+  }
+  .feature-card h3 { font-family:'Syne',sans-serif;font-size:14.5px;font-weight:800;color:var(--text-primary);letter-spacing:-0.2px;margin-bottom:0.5rem; }
+  .feature-card p { font-size:12.5px;color:var(--text-muted);line-height:1.65;font-weight:300; }
+  .feature-tag {
+    display:inline-block;margin-top:1rem;
+    font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+    padding:3px 9px;border-radius:2px;
+    border:1px solid rgba(0,229,255,0.2);color:rgba(0,229,255,0.5);
+    background:rgba(0,229,255,0.04);
+  }
+
+  /* ══ PIPELINE PREVIEW ══ */
+  .pipeline-wrap { margin-top:3.5rem; }
+  .pipeline-track {
+    display:flex;align-items:center;gap:0;
+    overflow-x:auto;padding-bottom:0.5rem;
+    scrollbar-width:none;
+  }
+  .pipeline-track::-webkit-scrollbar { display:none; }
+  .pipeline-step {
+    flex-shrink:0;
+    background:rgba(6,14,28,0.9);
+    border:1px solid var(--border);border-radius:4px;
+    padding:1.1rem 1.4rem;
+    text-align:center;min-width:130px;
+    position:relative;transition:border-color 0.2s,background 0.2s;
+  }
+  .pipeline-step:hover { border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.04); }
+  .pipeline-step .ps-num { font-family:var(--mono);font-size:8.5px;letter-spacing:2px;color:rgba(0,229,255,0.3);margin-bottom:6px; }
+  .pipeline-step .ps-icon { font-size:1.4rem;margin-bottom:6px;display:block; }
+  .pipeline-step .ps-label { font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:var(--text-primary);letter-spacing:-0.2px; }
+  .pipe-arrow {
+    flex-shrink:0;padding:0 8px;
+    font-family:var(--mono);font-size:11px;
+    color:rgba(0,229,255,0.25);
+  }
+
+  /* ══ TECH STACK ══ */
+  .tech-grid {
+    display:flex;flex-wrap:wrap;gap:10px;margin-top:2.5rem;
+  }
+  .tech-pill {
+    display:inline-flex;align-items:center;gap:8px;
+    padding:8px 16px;
+    background:rgba(6,14,28,0.9);
+    border:1px solid var(--border);border-radius:4px;
+    font-family:var(--mono);font-size:11px;letter-spacing:1px;
+    color:var(--text-muted);
+    transition:border-color 0.2s,color 0.2s;
+    backdrop-filter:blur(12px);
+  }
+  .tech-pill:hover { border-color:rgba(0,229,255,0.3);color:var(--cyan); }
+  .tech-pill-dot { width:5px;height:5px;border-radius:50%;background:rgba(0,229,255,0.4); }
+
+  /* ══ CTA STRIP ══ */
+  .cta-strip {
+    position:relative;z-index:10;
+    margin:0 2rem 6rem;max-width:1080px;margin-left:auto;margin-right:auto;
+    background:rgba(6,14,28,0.9);
+    border:1px solid rgba(0,229,255,0.18);border-radius:6px;
+    padding:3.5rem 3rem;overflow:hidden;
+    display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap;
+    backdrop-filter:blur(22px);
+    box-shadow:0 0 60px rgba(0,229,255,0.06),0 30px 80px rgba(0,0,0,0.5);
+  }
+  .cta-strip::before { content:'';position:absolute;top:0;left:0;width:70px;height:70px;border-top:1px solid rgba(0,229,255,0.35);border-left:1px solid rgba(0,229,255,0.35);pointer-events:none; }
+  .cta-strip::after  { content:'';position:absolute;bottom:0;right:0;width:50px;height:50px;border-bottom:1px solid rgba(123,47,247,0.3);border-right:1px solid rgba(123,47,247,0.3);pointer-events:none; }
+  .cta-strip-left h2 { font-family:'Syne',sans-serif;font-size:clamp(1.4rem,2.5vw,2rem);font-weight:800;letter-spacing:-1px;color:var(--text-primary);margin-bottom:0.5rem; }
+  .cta-strip-left h2 span { background:linear-gradient(110deg,var(--cyan),#b48bff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+  .cta-strip-left p { font-size:13px;color:var(--text-muted);font-weight:300;line-height:1.6; }
+  .cta-strip-right { display:flex;gap:12px;flex-wrap:wrap; }
+
+  /* ══ CODE STRIP ══ */
   .code-strip {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    z-index: 20;
-    border-top: 1px solid rgba(0, 229, 255, 0.07);
-    background: rgba(3, 8, 16, 0.65);
-    backdrop-filter: blur(10px);
-    padding: 0.6rem 0;
-    overflow: hidden;
+    position:fixed;bottom:0;left:0;right:0;z-index:20;
+    border-top:1px solid rgba(0,229,255,0.07);
+    background:rgba(3,8,16,0.65);backdrop-filter:blur(10px);
+    padding:0.6rem 0;overflow:hidden;
   }
-  .code-track {
-    display: flex;
-    gap: 4rem;
-    white-space: nowrap;
-    animation: marquee 28s linear infinite;
-    width: max-content;
-  }
-  @keyframes marquee {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
-  }
-  .code-item {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 10.5px;
-    letter-spacing: 1.5px;
-    color: rgba(0, 229, 255, 0.28);
-  }
-  .code-item .hl { color: rgba(0, 229, 255, 0.55); }
+  .code-track { display:flex;gap:4rem;white-space:nowrap;animation:marquee 28s linear infinite;width:max-content; }
+  @keyframes marquee { from{transform:translateX(0);}to{transform:translateX(-50%);} }
+  .code-item { font-family:var(--mono);font-size:10.5px;letter-spacing:1.5px;color:rgba(0,229,255,0.28); }
+  .code-item .hl { color:rgba(0,229,255,0.55); }
 
-  /* ── Vertical side label ── */
-  .side-label {
-    position: fixed;
-    right: 2.5rem;
-    top: 50%;
-    transform: translateY(-50%) rotate(90deg);
-    transform-origin: center;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 4px;
-    color: rgba(0, 229, 255, 0.2);
-    z-index: 20;
-    white-space: nowrap;
-    text-transform: uppercase;
-  }
+  .side-label { position:fixed;right:2.5rem;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:center;font-family:var(--mono);font-size:9px;letter-spacing:4px;color:rgba(0,229,255,0.2);z-index:20;white-space:nowrap;text-transform:uppercase; }
 
-  /* ── Keyframes ── */
-  @keyframes fadeSlideDown {
-    from { opacity: 0; transform: translateY(-18px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  @keyframes fadeSlideDown { from{opacity:0;transform:translateY(-18px);}to{opacity:1;transform:translateY(0);} }
+  @keyframes riseIn { from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);} }
 
-  /* ── Responsive ── */
-  @media (max-width: 640px) {
-    header { padding: 1.1rem 1.4rem; }
-    nav { display: none; }
-    h1 { letter-spacing: -1.5px; }
-    .side-label { display: none; }
-    .stats-row { gap: 0.4rem; }
-    .stat-chip { padding: 0.4rem 0.75rem; }
+  /* scroll reveal */
+  .reveal { opacity:0;transform:translateY(28px);transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1),transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+  .reveal.visible { opacity:1;transform:translateY(0); }
+  .reveal-delay-1 { transition-delay:0.08s; }
+  .reveal-delay-2 { transition-delay:0.16s; }
+  .reveal-delay-3 { transition-delay:0.24s; }
+  .reveal-delay-4 { transition-delay:0.32s; }
+
+  @media (max-width:640px) {
+    header { padding:1.1rem 1.4rem; }
+    nav { display:none; }
+    h1 { letter-spacing:-1.5px; }
+    .side-label { display:none; }
+    .stats-row { gap:0.4rem; }
+    .stat-chip { padding:0.4rem 0.75rem; }
+    .section { padding:4rem 1.2rem; }
+    .cta-strip { padding:2rem 1.5rem; margin:0 1.2rem 4rem; }
   }
 </style>
 {% endblock %}
@@ -391,13 +355,10 @@
 {% block content %}
 
 <canvas id="bg"></canvas>
-
-<!-- Ambient orbs -->
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
 <div class="orb orb-3"></div>
 
-<!-- Header -->
 <header>
   <div class="logo">
     <div class="logo-dot"></div>
@@ -411,53 +372,230 @@
   </nav>
 </header>
 
-<!-- Main -->
-<div class="content">
-  <div class="badge">
-    <span class="badge-pulse"></span>
-    // machine learning infrastructure
+<div class="page">
+
+  <!-- ══ HERO ══ -->
+  <section class="hero">
+    <div class="badge">
+      <span class="badge-pulse"></span>
+      // machine learning infrastructure
+    </div>
+    <h1>
+      <span class="word-plain">Build the&nbsp;</span><span class="word-gradient">Future</span><br>
+      <span class="word-plain">with&nbsp;</span><span class="word-gradient">AI</span>
+    </h1>
+    <p class="sub">
+      Explore cutting-edge algorithms, neural architectures, and data-driven models that power tomorrow's intelligent systems.
+    </p>
+    <div class="cta-group">
+      <a class="cta-primary" href="{{ url_for('upload') if session.get('user_id') else url_for('login') }}">
+        Get Started <i class="arrow-icon">→</i>
+      </a>
+      <a class="cta-secondary" href="#">View Docs</a>
+    </div>
+    <div class="stats-row">
+      <div class="stat-chip"><span class="stat-num">99.9%</span><span class="stat-label">Uptime</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-chip"><span class="stat-num">50ms</span><span class="stat-label">Avg Latency</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-chip"><span class="stat-num">12+</span><span class="stat-label">Model Types</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-chip"><span class="stat-num">v3.1</span><span class="stat-label">Latest Build</span></div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ══ HOW IT WORKS ══ -->
+  <section class="section">
+    <div class="reveal">
+      <div class="section-eyebrow"><span class="section-eyebrow-dot"></span> // how it works</div>
+      <h2 class="section-title">From raw data to <span class="grad">trained model</span><br>in minutes</h2>
+      <p class="section-sub">ML Ready AI walks you through every stage of the machine learning pipeline — no PhD required.</p>
+    </div>
+    <div class="steps-grid reveal reveal-delay-1">
+      <div class="step">
+        <div class="step-num">// step 01</div>
+        <span class="step-icon">📂</span>
+        <div class="step-title">Upload Dataset</div>
+        <div class="step-desc">Drop any CSV file. We instantly parse it, detect column types, and give you a full statistical summary.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">// step 02</div>
+        <span class="step-icon">🔬</span>
+        <div class="step-title">Explore & Analyse</div>
+        <div class="step-desc">Auto-generated histograms, correlation heatmaps, and categorical distributions reveal the shape of your data.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">// step 03</div>
+        <span class="step-icon">🧹</span>
+        <div class="step-title">Clean & Engineer</div>
+        <div class="step-desc">Fix missing values, remove outliers and duplicates, encode labels, and scale numeric features — all in-browser.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">// step 04</div>
+        <span class="step-icon">🤖</span>
+        <div class="step-title">Train & Evaluate</div>
+        <div class="step-desc">Pick a problem type, select an algorithm, and train. Get live accuracy, R², or silhouette scores instantly.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">// step 05</div>
+        <span class="step-icon">🚀</span>
+        <div class="step-title">Export & Deploy</div>
+        <div class="step-desc">Download your trained model as a <code style="font-family:var(--mono);font-size:10px;color:var(--cyan)">.pkl</code> file and your cleaned dataset as a <code style="font-family:var(--mono);font-size:10px;color:var(--cyan)">.csv</code> — ready for production.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ══ PIPELINE PREVIEW ══ -->
+  <section class="section">
+    <div class="reveal">
+      <div class="section-eyebrow"><span class="section-eyebrow-dot"></span> // end-to-end pipeline</div>
+      <h2 class="section-title">Every stage <span class="grad">automated</span></h2>
+      <p class="section-sub">A guided, sequential workflow so nothing falls through the cracks.</p>
+    </div>
+    <div class="pipeline-wrap reveal reveal-delay-1">
+      <div class="pipeline-track">
+        <div class="pipeline-step">
+          <div class="ps-num">// 01</div>
+          <span class="ps-icon">⬆️</span>
+          <div class="ps-label">Upload</div>
+        </div>
+        <div class="pipe-arrow">──▶</div>
+        <div class="pipeline-step">
+          <div class="ps-num">// 02</div>
+          <span class="ps-icon">📋</span>
+          <div class="ps-label">Summary</div>
+        </div>
+        <div class="pipe-arrow">──▶</div>
+        <div class="pipeline-step">
+          <div class="ps-num">// 03</div>
+          <span class="ps-icon">📊</span>
+          <div class="ps-label">EDA</div>
+        </div>
+        <div class="pipe-arrow">──▶</div>
+        <div class="pipeline-step">
+          <div class="ps-num">// 04</div>
+          <span class="ps-icon">🧹</span>
+          <div class="ps-label">Cleaning</div>
+        </div>
+        <div class="pipe-arrow">──▶</div>
+        <div class="pipeline-step">
+          <div class="ps-num">// 05</div>
+          <span class="ps-icon">⚙️</span>
+          <div class="ps-label">Engineering</div>
+        </div>
+        <div class="pipe-arrow">──▶</div>
+        <div class="pipeline-step">
+          <div class="ps-num">// 06</div>
+          <span class="ps-icon">🎯</span>
+          <div class="ps-label">Model Setup</div>
+        </div>
+        <div class="pipe-arrow">──▶</div>
+        <div class="pipeline-step">
+          <div class="ps-num">// 07</div>
+          <span class="ps-icon">🚂</span>
+          <div class="ps-label">Training</div>
+        </div>
+        <div class="pipe-arrow">──▶</div>
+        <div class="pipeline-step" style="border-color:rgba(0,229,255,0.3);">
+          <div class="ps-num">// 08</div>
+          <span class="ps-icon">🏁</span>
+          <div class="ps-label" style="color:var(--cyan);">Results</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ══ FEATURES ══ -->
+  <section class="section">
+    <div class="reveal">
+      <div class="section-eyebrow"><span class="section-eyebrow-dot"></span> // capabilities</div>
+      <h2 class="section-title">Everything you need to <span class="grad">ship ML</span></h2>
+      <p class="section-sub">A complete toolkit covering the full data science lifecycle — built for students, researchers, and practitioners.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon-wrap">📊</div>
+        <h3>Automated EDA</h3>
+        <p>Instant histograms with KDE curves, correlation heatmaps, and categorical bar charts for every column in your dataset.</p>
+        <span class="feature-tag">// visualization</span>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon-wrap">🧹</div>
+        <h3>Smart Data Cleaning</h3>
+        <p>Handle missing values with mean, median, mode, or forward-fill strategies. Remove outliers via IQR, and drop duplicate rows in one click.</p>
+        <span class="feature-tag">// preprocessing</span>
+      </div>
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-icon-wrap">⚙️</div>
+        <h3>Feature Engineering</h3>
+        <p>Label encode categorical columns and apply standard scaling to numeric features — preparing data exactly as ML models expect it.</p>
+        <span class="feature-tag">// transformation</span>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon-wrap">🎯</div>
+        <h3>Multi-Problem Support</h3>
+        <p>Supports Classification, Regression, and Clustering problems. Each mode auto-selects relevant algorithms and evaluation metrics.</p>
+        <span class="feature-tag">// ml modes</span>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon-wrap">📈</div>
+        <h3>Live Evaluation Metrics</h3>
+        <p>Accuracy for classifiers, R² and RMSE for regression, Silhouette score for clustering — computed on a held-out test split.</p>
+        <span class="feature-tag">// evaluation</span>
+      </div>
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-icon-wrap">💾</div>
+        <h3>One-Click Export</h3>
+        <p>Download your trained model as a <code style="font-family:var(--mono);font-size:11px;color:var(--cyan)">.pkl</code> and your processed dataset as <code style="font-family:var(--mono);font-size:11px;color:var(--cyan)">.csv</code> — plug directly into any Python script.</p>
+        <span class="feature-tag">// export</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ══ TECH STACK ══ -->
+  <section class="section">
+    <div class="reveal">
+      <div class="section-eyebrow"><span class="section-eyebrow-dot"></span> // tech stack</div>
+      <h2 class="section-title">Powered by <span class="grad">proven tools</span></h2>
+      <p class="section-sub">Built on the same libraries used by data scientists at the world's leading research labs and tech companies.</p>
+    </div>
+    <div class="tech-grid reveal reveal-delay-1">
+      <div class="tech-pill"><span class="tech-pill-dot"></span>Python 3.11</div>
+      <div class="tech-pill"><span class="tech-pill-dot"></span>Flask</div>
+      <div class="tech-pill"><span class="tech-pill-dot"></span>scikit-learn</div>
+      <div class="tech-pill"><span class="tech-pill-dot"></span>pandas</div>
+      <div class="tech-pill"><span class="tech-pill-dot"></span>NumPy</div>
+      <div class="tech-pill"><span class="tech-pill-dot"></span>Matplotlib</div>
+      <div class="tech-pill"><span class="tech-pill-dot"></span>Seaborn</div>
+      <div class="tech-pill"><span class="tech-pill-dot"></span>Jinja2</div>
+      <div class="tech-pill"><span class="tech-pill-dot"></span>joblib / pickle</div>
+      <div class="tech-pill"><span class="tech-pill-dot"></span>HTML · CSS · JS</div>
+    </div>
+  </section>
+
+  <!-- ══ BOTTOM CTA ══ -->
+  <div class="cta-strip reveal">
+    <div class="cta-strip-left">
+      <h2>Ready to build your <span>first model?</span></h2>
+      <p>Upload a dataset and go from raw data to a trained, exportable model in under 10 minutes.</p>
+    </div>
+    <div class="cta-strip-right">
+      <a class="cta-primary" href="{{ url_for('upload') if session.get('user_id') else url_for('login') }}">
+        Start Now <i class="arrow-icon">→</i>
+      </a>
+      <a class="cta-secondary" href="#">Read the Docs</a>
+    </div>
   </div>
 
-  <h1>
-    <span class="word-plain">Build the&nbsp;</span><span class="word-gradient">Future</span><br>
-    <span class="word-plain">with&nbsp;</span><span class="word-gradient">AI</span>
-  </h1>
-
-  <p class="sub">
-    Explore cutting-edge algorithms, neural architectures, and data-driven models that power tomorrow's intelligent systems.
-  </p>
-
-  <div class="cta-group">
-    <a class="cta-primary" href="{{ url_for('upload') if session.get('user_id') else url_for('login') }}">
-      Get Started <i class="arrow-icon">→</i>
-    </a>
-    <a class="cta-secondary" href="#">
-      View Docs
-    </a>
-  </div>
-
-  <div class="stats-row">
-    <div class="stat-chip">
-      <span class="stat-num">99.9%</span>
-      <span class="stat-label">Uptime</span>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-chip">
-      <span class="stat-num">50ms</span>
-      <span class="stat-label">Avg Latency</span>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-chip">
-      <span class="stat-num">12+</span>
-      <span class="stat-label">Model Types</span>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-chip">
-      <span class="stat-num">v3.1</span>
-      <span class="stat-label">Latest Build</span>
-    </div>
-  </div>
-</div>
+</div><!-- /page -->
 
 <!-- Scrolling code strip -->
 <div class="code-strip">
@@ -468,7 +606,6 @@
     <span class="code-item">loss = <span class="hl">F</span>.cross_entropy(logits, targets)</span>
     <span class="code-item"><span class="hl">accuracy</span>: 0.9847 &nbsp;|&nbsp; <span class="hl">loss</span>: 0.0312</span>
     <span class="code-item">pipeline = <span class="hl">Pipeline</span>([('scaler', StandardScaler()), ('clf', SVM())])</span>
-    <!-- duplicate for seamless loop -->
     <span class="code-item"><span class="hl">model</span>.fit(X_train, y_train, epochs=<span class="hl">100</span>)</span>
     <span class="code-item"><span class="hl">nn</span>.Linear(<span class="hl">512</span>, <span class="hl">256</span>)</span>
     <span class="code-item">optimizer = <span class="hl">torch</span>.optim.Adam(params, lr=<span class="hl">1e-4</span>)</span>
@@ -478,7 +615,6 @@
   </div>
 </div>
 
-<!-- Side label -->
 <div class="side-label">Neural Engine · Active</div>
 
 {% endblock %}
@@ -488,161 +624,61 @@
 /* ─── Canvas (original logic preserved exactly) ─── */
 const canvas = document.getElementById('bg');
 const ctx = canvas.getContext('2d');
-
 let W, H, nodes, edges, particles;
-
-const COLORS = {
-  node: '#00e5ff',
-  edge: 'rgba(0,229,255,0.12)',
-  activeEdge: 'rgba(0,229,255,0.55)',
-  particle: '#7b2ff7',
-  bg1: '#050d1a',
-  bg2: '#0a1628',
-};
-
-function rand(min, max) { return Math.random() * (max - min) + min; }
-
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-  init();
-}
-
-function init() {
-  const layers = [3, 5, 6, 5, 3];
-  nodes = [];
-  edges = [];
-  particles = [];
-
-  const totalLayers = layers.length;
-  const xStep = W / (totalLayers + 1);
-
-  layers.forEach((count, li) => {
-    const x = xStep * (li + 1);
-    const yStep = H / (count + 1);
-    for (let ni = 0; ni < count; ni++) {
-      nodes.push({
-        x, y: yStep * (ni + 1),
-        layer: li, idx: ni,
-        r: rand(4, 7),
-        pulsePhase: rand(0, Math.PI * 2),
-        pulseSpeed: rand(0.01, 0.03),
-        activated: Math.random() > 0.5,
-        activationTimer: rand(0, 200),
-      });
-    }
+const COLORS = { node:'#00e5ff',edge:'rgba(0,229,255,0.12)',activeEdge:'rgba(0,229,255,0.55)',particle:'#7b2ff7',bg1:'#050d1a',bg2:'#0a1628' };
+function rand(min,max){return Math.random()*(max-min)+min;}
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;init();}
+function init(){
+  const layers=[3,5,6,5,3];nodes=[];edges=[];particles=[];
+  const totalLayers=layers.length;const xStep=W/(totalLayers+1);
+  layers.forEach((count,li)=>{
+    const x=xStep*(li+1);const yStep=H/(count+1);
+    for(let ni=0;ni<count;ni++){nodes.push({x,y:yStep*(ni+1),layer:li,idx:ni,r:rand(4,7),pulsePhase:rand(0,Math.PI*2),pulseSpeed:rand(0.01,0.03),activated:Math.random()>0.5,activationTimer:rand(0,200)});}
   });
-
-  for (let li = 0; li < layers.length - 1; li++) {
-    const fromLayer = nodes.filter(n => n.layer === li);
-    const toLayer = nodes.filter(n => n.layer === li + 1);
-    fromLayer.forEach(from => {
-      toLayer.forEach(to => {
-        edges.push({ from, to, weight: rand(0.1, 1), active: false, activeTimer: 0 });
-      });
-    });
+  for(let li=0;li<layers.length-1;li++){
+    const fromLayer=nodes.filter(n=>n.layer===li);const toLayer=nodes.filter(n=>n.layer===li+1);
+    fromLayer.forEach(from=>{toLayer.forEach(to=>{edges.push({from,to,weight:rand(0.1,1),active:false,activeTimer:0});});});
   }
-
-  for (let i = 0; i < 60; i++) {
-    particles.push({
-      x: rand(0, W), y: rand(0, H),
-      vx: rand(-0.3, 0.3), vy: rand(-0.3, 0.3),
-      size: rand(1, 2.5),
-      opacity: rand(0.1, 0.35),
-      char: String.fromCharCode(rand(48, 57) | 0),
-      charTimer: 0,
-    });
-  }
+  for(let i=0;i<60;i++){particles.push({x:rand(0,W),y:rand(0,H),vx:rand(-0.3,0.3),vy:rand(-0.3,0.3),size:rand(1,2.5),opacity:rand(0.1,0.35),char:String.fromCharCode(rand(48,57)|0),charTimer:0});}
 }
-
-let frame = 0;
-function draw() {
+let frame=0;
+function draw(){
   frame++;
-
-  const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, COLORS.bg1);
-  grad.addColorStop(1, COLORS.bg2);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.strokeStyle = 'rgba(0,229,255,0.03)';
-  ctx.lineWidth = 0.5;
-  const gridSize = 60;
-  for (let gx = 0; gx < W; gx += gridSize) {
-    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
-  }
-  for (let gy = 0; gy < H; gy += gridSize) {
-    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
-  }
-
-  particles.forEach(p => {
-    p.x += p.vx; p.y += p.vy;
-    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
-    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
-    p.charTimer++;
-    if (p.charTimer > 40) { p.char = Math.random() > 0.5 ? '1' : '0'; p.charTimer = 0; }
-    ctx.font = `${p.size * 5}px Share Tech Mono, monospace`;
-    ctx.fillStyle = `rgba(0,229,255,${p.opacity})`;
-    ctx.fillText(p.char, p.x, p.y);
+  const grad=ctx.createLinearGradient(0,0,W,H);grad.addColorStop(0,COLORS.bg1);grad.addColorStop(1,COLORS.bg2);ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(0,229,255,0.03)';ctx.lineWidth=0.5;const gridSize=60;
+  for(let gx=0;gx<W;gx+=gridSize){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+  for(let gy=0;gy<H;gy+=gridSize){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+  particles.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+    p.charTimer++;if(p.charTimer>40){p.char=Math.random()>0.5?'1':'0';p.charTimer=0;}
+    ctx.font=`${p.size*5}px Share Tech Mono,monospace`;ctx.fillStyle=`rgba(0,229,255,${p.opacity})`;ctx.fillText(p.char,p.x,p.y);
   });
-
-  if (frame % 40 === 0) {
-    const e = edges[Math.floor(Math.random() * edges.length)];
-    e.active = true; e.activeTimer = 0; e.progress = 0;
-  }
-
-  edges.forEach(e => {
-    if (e.active) {
-      e.activeTimer++;
-      e.progress = Math.min(e.activeTimer / 60, 1);
-      if (e.activeTimer > 80) { e.active = false; e.activeTimer = 0; }
-    }
-
-    ctx.lineWidth = e.active ? 1.2 : 0.5;
-    ctx.strokeStyle = e.active
-      ? `rgba(0,229,255,${0.6 * (1 - Math.abs(e.progress - 0.5) * 2)})`
-      : COLORS.edge;
-    ctx.beginPath();
-    ctx.moveTo(e.from.x, e.from.y);
-    ctx.lineTo(e.to.x, e.to.y);
-    ctx.stroke();
-
-    if (e.active && e.progress < 1) {
-      const sx = e.from.x + (e.to.x - e.from.x) * e.progress;
-      const sy = e.from.y + (e.to.y - e.from.y) * e.progress;
-      ctx.beginPath();
-      ctx.arc(sx, sy, 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = '#00e5ff';
-      ctx.fill();
-    }
+  if(frame%40===0){const e=edges[Math.floor(Math.random()*edges.length)];e.active=true;e.activeTimer=0;e.progress=0;}
+  edges.forEach(e=>{
+    if(e.active){e.activeTimer++;e.progress=Math.min(e.activeTimer/60,1);if(e.activeTimer>80){e.active=false;e.activeTimer=0;}}
+    ctx.lineWidth=e.active?1.2:0.5;ctx.strokeStyle=e.active?`rgba(0,229,255,${0.6*(1-Math.abs(e.progress-0.5)*2)})`:COLORS.edge;
+    ctx.beginPath();ctx.moveTo(e.from.x,e.from.y);ctx.lineTo(e.to.x,e.to.y);ctx.stroke();
+    if(e.active&&e.progress<1){const sx=e.from.x+(e.to.x-e.from.x)*e.progress;const sy=e.from.y+(e.to.y-e.from.y)*e.progress;ctx.beginPath();ctx.arc(sx,sy,2.5,0,Math.PI*2);ctx.fillStyle='#00e5ff';ctx.fill();}
   });
-
-  nodes.forEach(n => {
-    n.pulsePhase += n.pulseSpeed;
-    const pulse = 1 + Math.sin(n.pulsePhase) * 0.3;
-    const r = n.r * pulse;
-
-    const grd = ctx.createRadialGradient(n.x, n.y, r * 0.5, n.x, n.y, r * 2.5);
-    grd.addColorStop(0, 'rgba(0,229,255,0.18)');
-    grd.addColorStop(1, 'rgba(0,229,255,0)');
-    ctx.beginPath(); ctx.arc(n.x, n.y, r * 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = grd; ctx.fill();
-
-    ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(5,13,26,0.9)'; ctx.fill();
-    ctx.strokeStyle = '#00e5ff';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    ctx.beginPath(); ctx.arc(n.x, n.y, r * 0.35, 0, Math.PI * 2);
-    ctx.fillStyle = '#00e5ff'; ctx.fill();
+  nodes.forEach(n=>{
+    n.pulsePhase+=n.pulseSpeed;const pulse=1+Math.sin(n.pulsePhase)*0.3;const r=n.r*pulse;
+    const grd=ctx.createRadialGradient(n.x,n.y,r*0.5,n.x,n.y,r*2.5);grd.addColorStop(0,'rgba(0,229,255,0.18)');grd.addColorStop(1,'rgba(0,229,255,0)');
+    ctx.beginPath();ctx.arc(n.x,n.y,r*2.5,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+    ctx.beginPath();ctx.arc(n.x,n.y,r,0,Math.PI*2);ctx.fillStyle='rgba(5,13,26,0.9)';ctx.fill();ctx.strokeStyle='#00e5ff';ctx.lineWidth=1;ctx.stroke();
+    ctx.beginPath();ctx.arc(n.x,n.y,r*0.35,0,Math.PI*2);ctx.fillStyle='#00e5ff';ctx.fill();
   });
-
   requestAnimationFrame(draw);
 }
+window.addEventListener('resize',resize);resize();draw();
+</script>
 
-window.addEventListener('resize', resize);
-resize();
-draw();
+<script>
+/* ─── Scroll reveal ─── */
+const revealEls = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.12 });
+revealEls.forEach(el => observer.observe(el));
 </script>
 {% endblock %}
