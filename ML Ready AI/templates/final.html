@@ -5,131 +5,511 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Final Dashboard — ML Ready AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .done-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+        :root {
+            --cyan:   #00e5ff;
+            --violet: #7b2ff7;
+            --pink:   #ff2d78;
+            --green:  #00e5a0;
+            --bg:     #030810;
+            --card-bg: rgba(6,14,28,0.82);
+            --border: rgba(0,229,255,0.12);
+            --text:   #eef4ff;
+            --muted:  rgba(170,200,255,0.42);
+            --mono:   'Share Tech Mono', monospace;
+            --amber:  #fcb55c;
         }
 
-        .done-item {
-            background: rgba(34, 197, 94, 0.05);
-            border: 1px solid #22c55e;
-            padding: 15px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.9rem;
-            color: #86efac;
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .check-icon {
-            font-size: 1.2rem;
+        /* ══ CANVAS ══ */
+        #bg-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+
+        /* ══ AURORA ══ */
+        .aurora { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+        .aurora-blob { position: absolute; border-radius: 50%; filter: blur(80px); mix-blend-mode: screen; opacity: 0.55; }
+        .ab1 { width:700px;height:500px;background:radial-gradient(ellipse,rgba(0,229,255,0.18) 0%,transparent 70%);top:-180px;left:-200px;animation:float1 20s ease-in-out infinite alternate; }
+        .ab2 { width:600px;height:600px;background:radial-gradient(ellipse,rgba(123,47,247,0.22) 0%,transparent 70%);bottom:-200px;right:-150px;animation:float2 25s ease-in-out infinite alternate; }
+        .ab3 { width:400px;height:400px;background:radial-gradient(ellipse,rgba(0,229,160,0.10) 0%,transparent 70%);top:40%;left:55%;animation:float3 17s ease-in-out infinite alternate; }
+        .ab4 { width:350px;height:250px;background:radial-gradient(ellipse,rgba(0,229,255,0.1) 0%,transparent 70%);top:60%;left:10%;animation:float1 22s ease-in-out infinite alternate-reverse; }
+        @keyframes float1 { to { transform:translate(60px,80px) scale(1.1); } }
+        @keyframes float2 { to { transform:translate(-50px,-60px) scale(1.15); } }
+        @keyframes float3 { to { transform:translate(-40px,50px) scale(0.9); } }
+
+        /* ══ NAVBAR ══ */
+        .navbar {
+            position: fixed; top:0; left:0; right:0; z-index:100;
+            display: flex; align-items:center; justify-content:space-between;
+            padding: 1.25rem 3rem;
+            background: rgba(3,8,16,0.55);
+            backdrop-filter: blur(18px) saturate(1.5);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-brand {
+            font-family: 'Syne', sans-serif; font-weight:800; font-size:1.1rem;
+            color: var(--text); text-decoration:none;
+            display:flex; align-items:center; gap:0.55rem; letter-spacing:-0.5px;
+        }
+        .nav-dot { width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:pulse 2s ease-in-out infinite; }
+        .nav-brand .accent { color: var(--cyan); }
+        .nav-links { display:flex; gap:2rem; }
+        .nav-links a { font-size:0.84rem;font-weight:500;color:var(--muted);text-decoration:none;transition:color 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--cyan); }
+        @keyframes pulse {
+            0%,100% { box-shadow:0 0 10px var(--cyan);opacity:1; }
+            50%      { box-shadow:0 0 3px var(--cyan);opacity:0.4; }
         }
 
+        /* ══ PAGE ══ */
+        .page-container {
+            position: relative; z-index:10;
+            max-width: 1020px; margin:0 auto;
+            padding: 7rem 2rem 5rem;
+        }
+
+        /* ══ SECTION LABEL ══ */
+        .section-label {
+            font-family:var(--mono); font-size:9px; font-weight:600;
+            letter-spacing:2.5px; text-transform:uppercase;
+            color:rgba(0,229,255,0.35);
+            margin-bottom:0.65rem; margin-top:0.2rem;
+        }
+
+        /* ══ HERO ══ */
         .final-hero {
             text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #1a1f36 0%, #0d0f1a 100%);
-            border-radius: var(--radius);
-            margin-bottom: 30px;
+            padding: 3rem 2rem;
+            background: var(--card-bg);
+            border: 1px solid rgba(0,229,160,0.22);
+            border-radius: 6px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(22px) saturate(1.3);
+            box-shadow: 0 0 60px rgba(0,229,160,0.07), 0 20px 60px rgba(0,0,0,0.5),
+                        inset 0 1px 0 rgba(255,255,255,0.03);
+            position: relative; overflow: hidden;
+            animation: riseIn 0.8s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        .final-hero::before {
+            content:''; position:absolute; top:0; left:0; width:60px; height:60px;
+            border-top:1px solid rgba(0,229,160,0.4); border-left:1px solid rgba(0,229,160,0.4);
+            pointer-events:none;
+        }
+        .final-hero::after {
+            content:''; position:absolute; bottom:0; right:0; width:50px; height:50px;
+            border-bottom:1px solid rgba(0,229,160,0.3); border-right:1px solid rgba(0,229,160,0.3);
+            pointer-events:none;
+        }
+        .congrats {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            display: block;
+            animation: bouncIn 0.9s 0.3s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        @keyframes bouncIn {
+            from { opacity:0; transform: scale(0.5); }
+            to   { opacity:1; transform: scale(1); }
+        }
+        .hero-title {
+            font-family:'Syne',sans-serif;
+            font-size:clamp(1.6rem,3.5vw,2.4rem);
+            font-weight:800; letter-spacing:-1.5px; line-height:1.1;
+            margin-bottom:0.6rem;
+        }
+        .hero-title .grad {
+            background: linear-gradient(110deg, var(--green) 0%, var(--cyan) 50%, #b48bff 100%);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+        }
+        .hero-subtitle { font-size:0.9rem; font-weight:300; color:var(--muted); }
+
+        /* ══ CARD ══ */
+        .card {
+            background: var(--card-bg);
             border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.8rem 2rem;
+            backdrop-filter: blur(22px) saturate(1.3);
+            box-shadow: 0 0 0 1px rgba(0,229,255,0.03), 0 20px 60px rgba(0,0,0,0.5),
+                        inset 0 1px 0 rgba(255,255,255,0.03);
+            position:relative; overflow:hidden;
+            margin-bottom: 16px;
+            transition: border-color 0.25s;
+            animation: riseIn 0.7s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        .card:hover { border-color: rgba(0,229,255,0.28); }
+        .card::before {
+            content:''; position:absolute; top:0; left:0; width:50px; height:50px;
+            border-top:1px solid rgba(0,229,255,0.3); border-left:1px solid rgba(0,229,255,0.3);
+            pointer-events:none;
+        }
+        .card::after {
+            content:''; position:absolute; bottom:0; right:0; width:38px; height:38px;
+            border-bottom:1px solid rgba(123,47,247,0.3); border-right:1px solid rgba(123,47,247,0.3);
+            pointer-events:none;
+        }
+        .card:nth-child(2) { animation-delay: 0.08s; }
+        .card:nth-child(3) { animation-delay: 0.16s; }
+        .card:nth-child(4) { animation-delay: 0.24s; }
+
+        /* ══ CARD HEADER ══ */
+        .card-header {
+            display:flex; align-items:center; gap:12px;
+            margin-bottom:1.4rem;
+            padding-bottom:1rem;
+            border-bottom:1px solid rgba(0,229,255,0.08);
+        }
+        .card-icon {
+            width:38px; height:38px; border-radius:4px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:18px; flex-shrink:0;
+        }
+        .icon-green  { background:rgba(0,229,160,0.08);  border:1px solid rgba(0,229,160,0.2); }
+        .icon-cyan   { background:rgba(0,229,255,0.08);  border:1px solid rgba(0,229,255,0.15); }
+        .icon-violet { background:rgba(123,47,247,0.12); border:1px solid rgba(123,47,247,0.2); }
+
+        .card-header-text h2 {
+            font-family:'Syne',sans-serif; font-size:15px; font-weight:800;
+            color:var(--text); letter-spacing:-0.3px; margin-bottom:2px;
+        }
+        .card-header-text p { font-size:11.5px; color:var(--muted); font-weight:300; }
+
+        /* ══ DONE GRID ══ */
+        .done-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .done-item {
+            background: rgba(0,229,160,0.04);
+            border: 1px solid rgba(0,229,160,0.18);
+            padding: 12px 14px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12.5px;
+            color: rgba(0,229,160,0.75);
+            font-weight: 400;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .done-item:hover { background: rgba(0,229,160,0.08); border-color: rgba(0,229,160,0.35); }
+        .check-icon { font-size: 14px; flex-shrink:0; }
+
+        /* ══ METRIC CARD ══ */
+        .metric-row {
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+        }
+        .metric-label h2 {
+            font-family:'Syne',sans-serif; font-size:18px; font-weight:800;
+            color:var(--cyan); letter-spacing:-0.5px; margin-bottom:4px;
+        }
+        .metric-label p { font-size:12.5px; color:var(--muted); }
+        .metric-label p strong { color: var(--text); font-weight:600; }
+
+        .metric-badge {
+            display:inline-flex; align-items:center; gap:8px;
+            padding: 12px 24px;
+            font-family:'Syne',sans-serif; font-size:14px; font-weight:800;
+            color: var(--bg);
+            background: linear-gradient(110deg, var(--green), var(--cyan));
+            border-radius:4px;
+            box-shadow: 0 0 30px rgba(0,229,160,0.25);
+            letter-spacing:-0.3px;
         }
 
-        .congrats {
-            font-size: 3rem;
-            margin-bottom: 10px;
+        /* ══ DELIVERABLES CARD ══ */
+        .deliverables-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(0,229,255,0.2);
+            border-top: 3px solid var(--cyan);
+            border-radius: 6px; padding: 1.8rem 2rem;
+            backdrop-filter: blur(22px);
+            box-shadow: 0 0 40px rgba(0,229,255,0.06), 0 20px 60px rgba(0,0,0,0.5);
+            position:relative; overflow:hidden;
+            margin-bottom: 16px;
+            animation: riseIn 0.7s 0.32s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        .deliverables-card::after {
+            content:''; position:absolute; bottom:0; right:0; width:38px; height:38px;
+            border-bottom:1px solid rgba(123,47,247,0.3); border-right:1px solid rgba(123,47,247,0.3);
+            pointer-events:none;
+        }
+        .deliverables-card h2 {
+            font-family:'Syne',sans-serif; font-size:15px; font-weight:800;
+            color:var(--text); margin-bottom:6px; letter-spacing:-0.3px;
+        }
+        .deliverables-card p { font-size:13px; color:var(--muted); margin-bottom:1.5rem; line-height:1.6; }
+
+        .download-row { display: flex; gap: 16px; flex-wrap: wrap; }
+
+        /* ══ BUTTONS ══ */
+        .btn-primary {
+            display:inline-flex; align-items:center; justify-content:center; gap:7px;
+            padding:10px 22px;
+            font-family:'Syne',sans-serif; font-size:13px; font-weight:700;
+            color:#030810; background:var(--cyan);
+            border:none; border-radius:4px; cursor:pointer;
+            transition:transform 0.2s, box-shadow 0.2s; text-decoration:none;
+            box-shadow:0 0 24px rgba(0,229,255,0.22); letter-spacing:0.2px;
+        }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 0 40px rgba(0,229,255,0.38); }
+        .btn-primary:active { transform:translateY(0); }
+        .btn-secondary {
+            display:inline-flex; align-items:center; justify-content:center; gap:7px;
+            padding:10px 22px;
+            font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500;
+            color:var(--muted); background:transparent;
+            border:1px solid var(--border); border-radius:4px; cursor:pointer;
+            transition:border-color 0.2s, color 0.2s, background 0.2s; text-decoration:none;
+        }
+        .btn-secondary:hover { color:var(--cyan); border-color:rgba(0,229,255,0.4); background:rgba(0,229,255,0.04); }
+
+        /* ══ BACK LINK ══ */
+        .back-link {
+            display:block; text-align:center; margin-top:2.5rem;
+            font-family:var(--mono); font-size:11px; letter-spacing:1.5px;
+            color:rgba(0,229,255,0.4); text-decoration:none;
+            transition:color 0.2s;
+        }
+        .back-link:hover { color:var(--cyan); }
+
+        /* ══ FOOTER ══ */
+        footer {
+            position:relative; z-index:10; text-align:center; padding:1.5rem;
+            font-family:var(--mono); font-size:10px; letter-spacing:2.5px;
+            color:rgba(0,229,255,0.16); text-transform:uppercase;
+        }
+
+        @keyframes riseIn {
+            from { opacity:0; transform:translateY(22px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        @media (max-width:600px) {
+            .navbar { padding:1rem 1.2rem; }
+            .nav-links { gap:1.2rem; }
+            .page-container { padding:5.5rem 1.2rem 4rem; }
+            .card, .deliverables-card { padding:1.2rem; }
+            .metric-row { flex-direction: column; align-items: flex-start; }
+            .download-row { flex-direction: column; }
+            .btn-primary, .btn-secondary { width:100%; }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
-        <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/upload">Upload</a>
-            <a href="/summary">Summary</a>
-            <a href="/final" class="active">Final Dashboard</a>
-        </div>
-    </nav>
+<canvas id="bg-canvas"></canvas>
+<div class="aurora">
+    <div class="aurora-blob ab1"></div>
+    <div class="aurora-blob ab2"></div>
+    <div class="aurora-blob ab3"></div>
+    <div class="aurora-blob ab4"></div>
+</div>
 
-    <div class="page-container">
+<!-- NAVBAR -->
+<nav class="navbar">
+    <a class="nav-brand" href="/"><span class="nav-dot"></span>ML <span class="accent">Ready</span> AI</a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/upload">Upload</a>
+        <a href="/summary">Summary</a>
+        <a href="/final" class="active">Final Dashboard</a>
+    </div>
+</nav>
 
-        <div class="final-hero">
-            <div class="congrats">🎉</div>
-            <h1 class="page-title" style="margin-bottom: 0;">Project Completed Successfully!</h1>
-            <p class="page-subtitle">Your data is clean, and your model is trained and ready for production.</p>
-        </div>
+<div class="page-container">
 
-        <!-- 1. PIPELINE SUMMARY -->
-        <div class="card">
-            <h3>🏗️ Pipeline Status</h3>
-            <div class="done-grid">
-                <div class="done-item"><span class="check-icon">✅</span> Dataset Uploaded</div>
-                <div class="done-item"><span class="check-icon">✅</span> Summary & EDA</div>
-                <div class="done-item"><span class="check-icon">✅</span> Missing Values Fixed</div>
-                <div class="done-item"><span class="check-icon">✅</span> Outliers Handled</div>
-                <div class="done-item"><span class="check-icon">✅</span> Duplicates Removed</div>
-                <div class="done-item"><span class="check-icon">✅</span> Features Engineered</div>
-                <div class="done-item"><span class="check-icon">✅</span> Model Trained</div>
-            </div>
-        </div>
-
-        <!-- 2. MODEL STATS RECAP -->
-        <div class="card"
-            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
-            <div>
-                <h3 style="color: var(--accent2);">{{ algorithm.replace('_', ' ').capitalize() }}</h3>
-                <p style="color: var(--text-muted);">Trained for <strong>{{ problem_type.capitalize() }}</strong></p>
-            </div>
-            <div style="text-align: right;">
-                <span class="pill-ok" style="font-size: 1.2rem; padding: 10px 25px;">
-                    🎯 Performance Metric:
-                    <strong>
-                        {% if problem_type == 'classification' %}
-                        {{ metrics.accuracy * 100 }}% Accuracy
-                        {% elif problem_type == 'regression' %}
-                        {{ metrics.r2 }} R² Score
-                        {% elif problem_type == 'clustering' %}
-                        {{ metrics.silhouette }} Silhouette
-                        {% endif %}
-                    </strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- 3. FINAL DOWNLOADS -->
-        <div class="card" style="border-top: 4px solid var(--accent); background: rgba(108, 99, 255, 0.03);">
-            <h3>🚀 Final Deliverables</h3>
-            <p style="margin-bottom: 25px; color: var(--text-muted);">Download your assets for use in external Python
-                scripts, reports, or web apps.</p>
-
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                <a href="/export_model" class="btn-primary"
-                    style="flex: 1; min-width: 250px; text-align: center; font-size: 1.1rem; padding: 18px;">
-                    💾 Download Trained Model (.pkl)
-                </a>
-                <a href="/export_data" class="btn-secondary"
-                    style="flex: 1; min-width: 250px; text-align: center; font-size: 1.1rem; padding: 18px;">
-                    📥 Download Cleaned Dataset (.csv)
-                </a>
-            </div>
-        </div>
-
-        <div style="text-align: center; margin-top: 40px;">
-            <a href="/" style="color: var(--accent2); font-weight: 600;">← Back to Home to start new project</a>
-        </div>
-
+    <!-- HERO -->
+    <div class="final-hero">
+        <span class="congrats">🎉</span>
+        <h1 class="hero-title">Project Completed <span class="grad">Successfully!</span></h1>
+        <p class="hero-subtitle">Your data is clean, and your model is trained and ready for production.</p>
     </div>
 
-    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+    <!-- 1. PIPELINE SUMMARY -->
+    <div class="section-label">// pipeline status</div>
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon icon-green">🏗️</div>
+            <div class="card-header-text">
+                <h2>Pipeline Status</h2>
+                <p>All stages completed successfully</p>
+            </div>
+        </div>
+        <div class="done-grid">
+            <div class="done-item"><span class="check-icon">✅</span> Dataset Uploaded</div>
+            <div class="done-item"><span class="check-icon">✅</span> Summary &amp; EDA</div>
+            <div class="done-item"><span class="check-icon">✅</span> Missing Values Fixed</div>
+            <div class="done-item"><span class="check-icon">✅</span> Outliers Handled</div>
+            <div class="done-item"><span class="check-icon">✅</span> Duplicates Removed</div>
+            <div class="done-item"><span class="check-icon">✅</span> Features Engineered</div>
+            <div class="done-item"><span class="check-icon">✅</span> Model Trained</div>
+        </div>
+    </div>
+
+    <!-- 2. MODEL STATS RECAP -->
+    <div class="section-label">// model performance</div>
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon icon-cyan">🎯</div>
+            <div class="card-header-text">
+                <h2>Model Stats Recap</h2>
+                <p>Final evaluation results for your trained model</p>
+            </div>
+        </div>
+        <div class="metric-row">
+            <div class="metric-label">
+                <h2>{{ algorithm.replace('_', ' ').capitalize() }}</h2>
+                <p>Trained for <strong>{{ problem_type.capitalize() }}</strong></p>
+            </div>
+            <div class="metric-badge">
+                🎯 Performance:&nbsp;
+                <strong>
+                    {% if problem_type == 'classification' %}
+                    {{ metrics.accuracy * 100 }}% Accuracy
+                    {% elif problem_type == 'regression' %}
+                    {{ metrics.r2 }} R² Score
+                    {% elif problem_type == 'clustering' %}
+                    {{ metrics.silhouette }} Silhouette
+                    {% endif %}
+                </strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. FINAL DOWNLOADS -->
+    <div class="section-label">// final deliverables</div>
+    <div class="deliverables-card">
+        <h2>🚀 Final Deliverables</h2>
+        <p>Download your assets for use in external Python scripts, reports, or web apps.</p>
+        <div class="download-row">
+            <a href="/export_model" class="btn-primary" style="flex:1; min-width:250px; font-size:1rem; padding:16px 22px;">
+                💾 Download Trained Model (.pkl)
+            </a>
+            <a href="/export_data" class="btn-secondary" style="flex:1; min-width:250px; font-size:1rem; padding:16px 22px;">
+                📥 Download Cleaned Dataset (.csv)
+            </a>
+        </div>
+    </div>
+
+    <a href="/" class="back-link">← back to home · start new project</a>
+
+</div>
+
+<footer>ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+<script>
+(function () {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx    = canvas.getContext('2d');
+    let W, H, particles, columns, nodes, edges, frame = 0;
+    const CYAN   = '0,229,255';
+    const VIOLET = '123,47,247';
+    const GREEN  = '0,229,160';
+    function rand(a,b){return Math.random()*(b-a)+a;}
+    function randInt(a,b){return Math.floor(rand(a,b));}
+    function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;build();}
+    function build(){
+        const colW=22;columns=[];
+        const nCols=Math.ceil(W/colW);
+        for(let i=0;i<nCols;i++){
+            columns.push({x:i*colW+colW/2,y:rand(-H,0),speed:rand(0.4,1.2),
+            chars:Array.from({length:randInt(8,24)},()=>Math.random()>0.5?'1':'0'),
+            opacity:rand(0.04,0.11),active:Math.random()>0.55});
+        }
+        particles=[];
+        for(let i=0;i<55;i++){
+            const roll=Math.random();
+            const color = roll>0.6 ? CYAN : roll>0.3 ? VIOLET : GREEN;
+            particles.push({x:rand(0,W),y:rand(0,H),vx:rand(-0.25,0.25),vy:rand(-0.25,0.25),
+            r:rand(1.2,3.2),color,opacity:rand(0.08,0.28),
+            pulsePhase:rand(0,Math.PI*2),pulseSpeed:rand(0.008,0.022)});
+        }
+        const layers=[2,4,5,4,2];nodes=[];edges=[];
+        const xStep=W/(layers.length+1);
+        layers.forEach((cnt,li)=>{
+            const x=xStep*(li+1);const yStep=H/(cnt+1);
+            for(let ni=0;ni<cnt;ni++){
+                nodes.push({x,y:yStep*(ni+1),layer:li,r:rand(3,5.5),
+                pulsePhase:rand(0,Math.PI*2),pulseSpeed:rand(0.008,0.024)});
+            }
+        });
+        for(let li=0;li<layers.length-1;li++){
+            const from=nodes.filter(n=>n.layer===li);
+            const to=nodes.filter(n=>n.layer===li+1);
+            from.forEach(f=>to.forEach(t=>{edges.push({from:f,to:t,active:false,timer:0,progress:0});}));
+        }
+    }
+    function draw(){
+        frame++;ctx.clearRect(0,0,W,H);
+        const bg=ctx.createLinearGradient(0,0,W,H);
+        bg.addColorStop(0,'#030810');bg.addColorStop(0.55,'#060e1c');bg.addColorStop(1,'#080618');
+        ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+        columns.forEach(col=>{
+            if(!col.active)return;
+            col.y+=col.speed;
+            if(col.y>H+col.chars.length*14)col.y=rand(-200,-50);
+            col.chars.forEach((ch,i)=>{
+                const cy=col.y+i*14;if(cy<-14||cy>H+14)return;
+                const fade=i===0?0.9:col.opacity*(1-i/col.chars.length);
+                ctx.font='11px Share Tech Mono,monospace';
+                ctx.fillStyle=`rgba(${CYAN},${fade})`;ctx.fillText(ch,col.x,cy);
+            });
+            if(frame%12===0&&Math.random()>0.7){const idx=randInt(0,col.chars.length);col.chars[idx]=Math.random()>0.5?'1':'0';}
+        });
+        particles.forEach(p=>{
+            p.x+=p.vx;p.y+=p.vy;
+            if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+            p.pulsePhase+=p.pulseSpeed;
+            const r=p.r*(1+Math.sin(p.pulsePhase)*0.3);
+            const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*3);
+            grd.addColorStop(0,`rgba(${p.color},${p.opacity})`);grd.addColorStop(1,`rgba(${p.color},0)`);
+            ctx.beginPath();ctx.arc(p.x,p.y,r*3,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+        });
+        if(frame%50===0){const e=edges[randInt(0,edges.length)];e.active=true;e.timer=0;e.progress=0;}
+        edges.forEach(e=>{
+            if(e.active){e.timer++;e.progress=Math.min(e.timer/70,1);if(e.timer>90)e.active=false;}
+            ctx.lineWidth=e.active?1.0:0.4;
+            ctx.strokeStyle=e.active?`rgba(${GREEN},${0.6*(1-Math.abs(e.progress-0.5)*2)})`:
+                `rgba(${CYAN},0.07)`;
+            ctx.beginPath();ctx.moveTo(e.from.x,e.from.y);ctx.lineTo(e.to.x,e.to.y);ctx.stroke();
+            if(e.active&&e.progress<1){
+                const sx=e.from.x+(e.to.x-e.from.x)*e.progress;
+                const sy=e.from.y+(e.to.y-e.from.y)*e.progress;
+                ctx.beginPath();ctx.arc(sx,sy,2.2,0,Math.PI*2);
+                ctx.fillStyle=`rgba(${GREEN},0.95)`;ctx.fill();
+            }
+        });
+        nodes.forEach(n=>{
+            n.pulsePhase+=n.pulseSpeed;
+            const pulse=1+Math.sin(n.pulsePhase)*0.28;const r=n.r*pulse;
+            const grd=ctx.createRadialGradient(n.x,n.y,r*0.4,n.x,n.y,r*2.8);
+            grd.addColorStop(0,`rgba(${GREEN},0.16)`);grd.addColorStop(1,`rgba(${GREEN},0)`);
+            ctx.beginPath();ctx.arc(n.x,n.y,r*2.8,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+            ctx.beginPath();ctx.arc(n.x,n.y,r,0,Math.PI*2);
+            ctx.fillStyle='rgba(3,8,16,0.88)';ctx.fill();
+            ctx.strokeStyle=`rgba(${GREEN},0.75)`;ctx.lineWidth=0.8;ctx.stroke();
+            ctx.beginPath();ctx.arc(n.x,n.y,r*0.32,0,Math.PI*2);
+            ctx.fillStyle=`rgba(${GREEN},1)`;ctx.fill();
+        });
+        requestAnimationFrame(draw);
+    }
+    window.addEventListener('resize',resize);resize();draw();
+})();
+</script>
 
 </body>
-
 </html>
