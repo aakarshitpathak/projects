@@ -5,188 +5,571 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Model Selection — ML Ready AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
+        :root {
+            --cyan:   #00e5ff;
+            --violet: #7b2ff7;
+            --pink:   #ff2d78;
+            --bg:     #030810;
+            --card-bg: rgba(6,14,28,0.82);
+            --border: rgba(0,229,255,0.12);
+            --text:   #eef4ff;
+            --muted:  rgba(170,200,255,0.42);
+            --mono:   'Share Tech Mono', monospace;
+            --amber:  #fcb55c;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ══ CANVAS ══ */
+        #bg-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+
+        /* ══ AURORA ══ */
+        .aurora { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+        .aurora-blob { position: absolute; border-radius: 50%; filter: blur(80px); mix-blend-mode: screen; opacity: 0.55; }
+        .ab1 { width:700px;height:500px;background:radial-gradient(ellipse,rgba(0,229,255,0.18) 0%,transparent 70%);top:-180px;left:-200px;animation:float1 20s ease-in-out infinite alternate; }
+        .ab2 { width:600px;height:600px;background:radial-gradient(ellipse,rgba(123,47,247,0.22) 0%,transparent 70%);bottom:-200px;right:-150px;animation:float2 25s ease-in-out infinite alternate; }
+        .ab3 { width:400px;height:400px;background:radial-gradient(ellipse,rgba(255,45,120,0.12) 0%,transparent 70%);top:40%;left:55%;animation:float3 17s ease-in-out infinite alternate; }
+        .ab4 { width:350px;height:250px;background:radial-gradient(ellipse,rgba(0,229,255,0.1) 0%,transparent 70%);top:60%;left:10%;animation:float1 22s ease-in-out infinite alternate-reverse; }
+        @keyframes float1 { to { transform:translate(60px,80px) scale(1.1); } }
+        @keyframes float2 { to { transform:translate(-50px,-60px) scale(1.15); } }
+        @keyframes float3 { to { transform:translate(-40px,50px) scale(0.9); } }
+
+        /* ══ NAVBAR ══ */
+        .navbar {
+            position: fixed; top:0; left:0; right:0; z-index:100;
+            display: flex; align-items:center; justify-content:space-between;
+            padding: 1.25rem 3rem;
+            background: rgba(3,8,16,0.55);
+            backdrop-filter: blur(18px) saturate(1.5);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-brand {
+            font-family: 'Syne', sans-serif; font-weight:800; font-size:1.1rem;
+            color: var(--text); text-decoration:none;
+            display:flex; align-items:center; gap:0.55rem; letter-spacing:-0.5px;
+        }
+        .nav-dot { width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:pulse 2s ease-in-out infinite; }
+        .nav-brand .accent { color: var(--cyan); }
+        .nav-links { display:flex; gap:1.6rem; }
+        .nav-links a { font-size:0.84rem;font-weight:500;color:var(--muted);text-decoration:none;transition:color 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--cyan); }
+        @keyframes pulse {
+            0%,100% { box-shadow:0 0 10px var(--cyan);opacity:1; }
+            50%      { box-shadow:0 0 3px var(--cyan);opacity:0.4; }
+        }
+
+        /* ══ PAGE ══ */
+        .page-container {
+            position: relative; z-index:10;
+            max-width: 1020px; margin:0 auto;
+            padding: 7rem 2rem 5rem;
+        }
+
+        /* ══ PAGE HEADER ══ */
+        .page-header { margin-bottom:2.5rem; animation: riseIn 0.8s cubic-bezier(0.16,1,0.3,1) both; }
+        .eyebrow {
+            display:inline-flex; align-items:center; gap:0.5rem;
+            font-family: var(--mono); font-size:10px; letter-spacing:3.5px;
+            color:var(--cyan); text-transform:uppercase;
+            padding:0.4rem 1rem;
+            border:1px solid rgba(0,229,255,0.18); border-radius:2px;
+            background:rgba(0,229,255,0.04); backdrop-filter:blur(8px);
+            margin-bottom:1rem;
+        }
+        .eyebrow-dot { width:5px;height:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);animation:pulse 1.8s ease-in-out infinite; }
+        .page-title {
+            font-family:'Syne',sans-serif;
+            font-size:clamp(1.8rem,4vw,2.8rem);
+            font-weight:800; letter-spacing:-2px; line-height:1.04;
+            color:var(--text); margin-bottom:0.6rem;
+        }
+        .page-title .grad {
+            background: linear-gradient(110deg, var(--cyan) 0%, #b48bff 50%, var(--violet) 100%);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+        }
+        .page-subtitle { font-size:0.9rem; font-weight:300; color:var(--muted); }
+
+        /* ══ SECTION LABEL ══ */
+        .section-label {
+            font-family:var(--mono); font-size:9px; font-weight:600;
+            letter-spacing:2.5px; text-transform:uppercase;
+            color:rgba(0,229,255,0.35);
+            margin-bottom:0.8rem; margin-top:0.2rem;
+        }
+
+        /* ══ FLASH ══ */
+        .flash {
+            padding: 10px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            font-family: var(--mono); letter-spacing: 0.3px;
+            border-left: 3px solid var(--cyan);
+            background: rgba(0,229,255,0.05);
+            color: var(--cyan);
+        }
+        .flash.error { border-left-color: var(--pink); background: rgba(255,45,120,0.05); color: var(--pink); }
+
+        /* ══ PROBLEM GRID ══ */
         .problem-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin-top: 30px;
-        }
-
-        .problem-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-            position: relative;
-        }
-
-        .problem-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow);
-            border-color: var(--accent);
-        }
-
-        .problem-card input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            cursor: pointer;
-        }
-
-        .problem-card .icon {
-            font-size: 3rem;
+            gap: 16px;
             margin-bottom: 20px;
         }
 
-        .problem-card h3 {
-            font-size: 1.4rem;
-            color: var(--accent2);
-            margin-bottom: 12px;
+        /* ══ PROBLEM CARD ══ */
+        .problem-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2rem 1.8rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(22px) saturate(1.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
+            animation: riseIn 0.7s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        .problem-card:nth-child(1) { animation-delay: 0.05s; }
+        .problem-card:nth-child(2) { animation-delay: 0.12s; }
+        .problem-card:nth-child(3) { animation-delay: 0.19s; }
+
+        /* corner brackets */
+        .problem-card::before {
+            content:''; position:absolute; top:0; left:0; width:40px; height:40px;
+            border-top:1px solid rgba(0,229,255,0.2); border-left:1px solid rgba(0,229,255,0.2);
+            pointer-events:none; transition: border-color 0.25s;
+        }
+        .problem-card::after {
+            content:''; position:absolute; bottom:0; right:0; width:30px; height:30px;
+            border-bottom:1px solid rgba(123,47,247,0.2); border-right:1px solid rgba(123,47,247,0.2);
+            pointer-events:none; transition: border-color 0.25s;
         }
 
-        .problem-card p {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            line-height: 1.5;
+        .problem-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0,229,255,0.35);
+            box-shadow: 0 0 40px rgba(0,229,255,0.1), 0 24px 60px rgba(0,0,0,0.5);
         }
+        .problem-card:hover::before { border-color: rgba(0,229,255,0.5); }
+
+        .problem-card input[type="radio"] {
+            position: absolute; opacity: 0;
+            width: 100%; height: 100%;
+            top: 0; left: 0; cursor: pointer; margin: 0;
+        }
+
+        /* per-type accent colours */
+        .problem-card[data-type="classification"] { --card-accent: var(--cyan); }
+        .problem-card[data-type="regression"]     { --card-accent: #b48bff; }
+        .problem-card[data-type="clustering"]     { --card-accent: var(--pink); }
 
         .problem-card.selected {
-            border: 2px solid var(--accent);
-            background: rgba(108, 99, 255, 0.05);
+            border-color: var(--card-accent);
+            box-shadow: 0 0 50px color-mix(in srgb, var(--card-accent) 18%, transparent),
+                        0 24px 60px rgba(0,0,0,0.5);
+            background: color-mix(in srgb, var(--card-accent) 5%, var(--card-bg));
+        }
+        .problem-card.selected::before { border-color: color-mix(in srgb, var(--card-accent) 60%, transparent); }
+
+        /* top glow bar on selected */
+        .problem-card .top-bar {
+            position: absolute; top:0; left:0; right:0; height:2px;
+            background: linear-gradient(90deg, transparent, var(--card-accent), transparent);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .problem-card.selected .top-bar { opacity: 1; }
+
+        .card-type-label {
+            font-family: var(--mono); font-size:9px; letter-spacing:2.5px;
+            text-transform:uppercase; color: var(--muted);
+            margin-bottom: 1rem;
+        }
+        .problem-card.selected .card-type-label { color: var(--card-accent); }
+
+        .problem-icon {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            display: block;
+            transition: filter 0.3s;
+        }
+        .problem-card.selected .problem-icon {
+            filter: drop-shadow(0 0 14px var(--card-accent));
         }
 
-        .problem-card.selected .icon {
-            filter: drop-shadow(0 0 10px var(--accent));
+        .problem-card h3 {
+            font-family:'Syne',sans-serif; font-size:16px; font-weight:800;
+            letter-spacing:-0.4px; color:var(--text);
+            margin-bottom:0.6rem;
+        }
+        .problem-card.selected h3 { color: var(--card-accent); }
+
+        .problem-card p {
+            font-size: 12.5px; color:var(--muted); line-height:1.65; font-weight:300;
         }
 
+        /* selected tick */
+        .sel-tick {
+            position:absolute; top:12px; right:12px;
+            width:20px; height:20px; border-radius:50%;
+            background:var(--card-accent);
+            display:flex; align-items:center; justify-content:center;
+            font-size:10px; color:#030810; font-weight:800;
+            opacity:0; transform:scale(0.5);
+            transition:opacity 0.25s, transform 0.25s;
+        }
+        .problem-card.selected .sel-tick { opacity:1; transform:scale(1); }
+
+        /* ══ TARGET SECTION ══ */
         .target-section {
             display: none;
-            margin-top: 40px;
-            animation: fadeIn 0.5s ease;
+            animation: riseIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
+        .target-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.8rem 2rem;
+            backdrop-filter: blur(22px) saturate(1.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
+            position: relative; overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .target-card::before {
+            content:''; position:absolute; top:0; left:0; width:50px; height:50px;
+            border-top:1px solid rgba(0,229,255,0.3); border-left:1px solid rgba(0,229,255,0.3);
+            pointer-events:none;
+        }
+        .target-card::after {
+            content:''; position:absolute; bottom:0; right:0; width:38px; height:38px;
+            border-bottom:1px solid rgba(123,47,247,0.3); border-right:1px solid rgba(123,47,247,0.3);
+            pointer-events:none;
+        }
+        .target-card-header {
+            display:flex; align-items:center; gap:12px;
+            margin-bottom:1.2rem;
+            padding-bottom:1rem;
+            border-bottom:1px solid rgba(0,229,255,0.08);
+        }
+        .card-icon {
+            width:38px; height:38px; border-radius:4px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:18px; flex-shrink:0;
+            background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.15);
+        }
+        .target-card-header h2 {
+            font-family:'Syne',sans-serif; font-size:15px; font-weight:800;
+            color:var(--text); letter-spacing:-0.3px; margin-bottom:2px;
+        }
+        .target-card-header p { font-size:11.5px; color:var(--muted); font-weight:300; }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* ══ FORM SELECT ══ */
+        .form-label {
+            display:block;
+            font-family:var(--mono); font-size:10px; letter-spacing:2px;
+            text-transform:uppercase; color:rgba(0,229,255,0.5);
+            margin-bottom:8px;
+        }
+        .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(3,8,16,0.8);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif; font-size:13px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(0,229,255,0.4)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 38px;
+        }
+        .form-select:focus {
+            border-color: rgba(0,229,255,0.4);
+            box-shadow: 0 0 20px rgba(0,229,255,0.08);
+        }
+        .form-select option { background: #060e1c; color: var(--text); }
+
+        /* ══ SUBMIT ══ */
+        .submit-wrap {
+            text-align:center; margin-top:2rem;
+            animation: riseIn 0.7s 0.3s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        .btn-primary {
+            display:inline-flex; align-items:center; justify-content:center; gap:8px;
+            padding:14px 36px;
+            font-family:'Syne',sans-serif; font-size:14px; font-weight:700;
+            color:#030810; background:var(--cyan);
+            border:none; border-radius:4px; cursor:pointer;
+            transition:transform 0.2s, box-shadow 0.2s; text-decoration:none;
+            box-shadow:0 0 28px rgba(0,229,255,0.25); letter-spacing:0.3px;
+        }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 0 44px rgba(0,229,255,0.42); }
+        .btn-primary:active { transform:translateY(0); }
+
+        /* ══ FOOTER ══ */
+        footer {
+            position:relative; z-index:10; text-align:center; padding:1.5rem;
+            font-family:var(--mono); font-size:10px; letter-spacing:2.5px;
+            color:rgba(0,229,255,0.16); text-transform:uppercase;
+        }
+
+        @keyframes riseIn {
+            from { opacity:0; transform:translateY(22px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        @media (max-width:650px) {
+            .navbar { padding:1rem 1.2rem; }
+            .nav-links { gap:1rem; font-size:0.78rem; }
+            .page-container { padding:5.5rem 1.2rem 4rem; }
+            .problem-card { padding:1.4rem; }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
-        <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/upload">Upload</a>
-            <a href="/summary">Summary</a>
-            <a href="/eda">EDA</a>
-            <a href="/cleaning">Cleaning</a>
-            <a href="/feature_engineering">Engineering</a>
-            <a href="/model" class="active">Model</a>
-        </div>
-    </nav>
+<canvas id="bg-canvas"></canvas>
+<div class="aurora">
+    <div class="aurora-blob ab1"></div>
+    <div class="aurora-blob ab2"></div>
+    <div class="aurora-blob ab3"></div>
+    <div class="aurora-blob ab4"></div>
+</div>
 
-    <div class="page-container">
-        <h1 class="page-title">🤖 Machine Learning Setup</h1>
+<!-- NAVBAR -->
+<nav class="navbar">
+    <a class="nav-brand" href="/"><span class="nav-dot"></span>ML <span class="accent">Ready</span> AI</a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/upload">Upload</a>
+        <a href="/summary">Summary</a>
+        <a href="/eda">EDA</a>
+        <a href="/cleaning">Cleaning</a>
+        <a href="/feature_engineering">Engineering</a>
+        <a href="/model" class="active">Model</a>
+    </div>
+</nav>
+
+<div class="page-container">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="eyebrow"><span class="eyebrow-dot"></span> // ml setup</div>
+        <h1 class="page-title">Machine Learning <span class="grad">Setup</span></h1>
         <p class="page-subtitle">Select the type of problem you want to solve with your data.</p>
-
-        <!-- Flash messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}{% for cat, msg in messages %}
-        <div class="flash {{ cat }}">{{ msg }}</div>
-        {% endfor %}{% endif %}
-        {% endwith %}
-
-        <form action="/model" method="POST">
-            <!-- 1. PROBLEM SELECTION (Module 10) -->
-            <div class="problem-grid">
-                <label class="problem-card" id="card-classification">
-                    <input type="radio" name="problem_type" value="classification" required
-                        onclick="updateSelection('classification')">
-                    <div class="icon">🎯</div>
-                    <h3>Classification</h3>
-                    <p>Predict a category or label.<br>(e.g. Yes/No, Spam/Not Spam, Car/Truck)</p>
-                </label>
-
-                <label class="problem-card" id="card-regression">
-                    <input type="radio" name="problem_type" value="regression" required
-                        onclick="updateSelection('regression')">
-                    <div class="icon">📈</div>
-                    <h3>Regression</h3>
-                    <p>Predict a continuous numerical value.<br>(e.g. Price, Temperature, Score)</p>
-                </label>
-
-                <label class="problem-card" id="card-clustering">
-                    <input type="radio" name="problem_type" value="clustering" required
-                        onclick="updateSelection('clustering')">
-                    <div class="icon">🧬</div>
-                    <h3>Clustering</h3>
-                    <p>Find hidden groups in data.<br>(e.g. Customer Segments, Anomaly Clusters)</p>
-                </label>
-            </div>
-
-            <!-- 2. TARGET SELECTION (Required for Classification/Regression) -->
-            <div class="target-section card" id="target-div">
-                <h3>🎯 Select Target Column</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
-                    This is the "Output" column you want the model to predict (not used for Clustering).
-                </p>
-                <div class="form-group">
-                    <label class="form-label">Target Column (y):</label>
-                    <select name="target_col" class="form-select">
-                        <option value="">-- Choose one --</option>
-                        {% for col in columns %}
-                        <option value="{{ col }}">{{ col }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-
-            <div style="margin-top: 30px; text-align: center;">
-                <button type="submit" class="btn-primary" style="width: 250px;">🚀 Next: Choose Algorithm</button>
-            </div>
-        </form>
-
     </div>
 
-    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for cat, msg in messages %}
+    <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}{% endif %}
+    {% endwith %}
 
-    <script>
-        function updateSelection(type) {
-            // Remove selected class from all cards
-            document.querySelectorAll('.problem-card').forEach(c => c.classList.remove('selected'));
+    <form action="/model" method="POST">
 
-            // Add selected class to chosen card
-            const selectedCard = document.getElementById('card-' + type);
-            if (selectedCard) selectedCard.classList.add('selected');
+        <!-- 1. PROBLEM SELECTION -->
+        <div class="section-label">// select problem type</div>
+        <div class="problem-grid">
 
-            // Show or hide target selection for clustering
-            const targetDiv = document.getElementById('target-div');
-            if (type === 'clustering') {
-                targetDiv.style.display = 'none';
-            } else {
-                targetDiv.style.display = 'block';
-            }
+            <label class="problem-card" id="card-classification" data-type="classification">
+                <div class="top-bar"></div>
+                <div class="sel-tick">✓</div>
+                <input type="radio" name="problem_type" value="classification" required
+                    onclick="updateSelection('classification')">
+                <div class="card-type-label">// supervised</div>
+                <span class="problem-icon">🎯</span>
+                <h3>Classification</h3>
+                <p>Predict a category or label.<br>(e.g. Yes/No, Spam/Not Spam, Car/Truck)</p>
+            </label>
+
+            <label class="problem-card" id="card-regression" data-type="regression">
+                <div class="top-bar"></div>
+                <div class="sel-tick">✓</div>
+                <input type="radio" name="problem_type" value="regression" required
+                    onclick="updateSelection('regression')">
+                <div class="card-type-label">// supervised</div>
+                <span class="problem-icon">📈</span>
+                <h3>Regression</h3>
+                <p>Predict a continuous numerical value.<br>(e.g. Price, Temperature, Score)</p>
+            </label>
+
+            <label class="problem-card" id="card-clustering" data-type="clustering">
+                <div class="top-bar"></div>
+                <div class="sel-tick">✓</div>
+                <input type="radio" name="problem_type" value="clustering" required
+                    onclick="updateSelection('clustering')">
+                <div class="card-type-label">// unsupervised</div>
+                <span class="problem-icon">🧬</span>
+                <h3>Clustering</h3>
+                <p>Find hidden groups in data.<br>(e.g. Customer Segments, Anomaly Clusters)</p>
+            </label>
+
+        </div>
+
+        <!-- 2. TARGET SELECTION -->
+        <div class="target-section" id="target-div">
+            <div class="section-label">// target column</div>
+            <div class="target-card">
+                <div class="target-card-header">
+                    <div class="card-icon">🎯</div>
+                    <div>
+                        <h2>Select Target Column</h2>
+                        <p>The output column you want the model to predict — not used for Clustering</p>
+                    </div>
+                </div>
+                <label class="form-label">Target Column (y)</label>
+                <select name="target_col" class="form-select">
+                    <option value="">-- choose one --</option>
+                    {% for col in columns %}
+                    <option value="{{ col }}">{{ col }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- SUBMIT -->
+        <div class="submit-wrap">
+            <button type="submit" class="btn-primary">🚀 Next: Choose Algorithm</button>
+        </div>
+
+    </form>
+
+</div>
+
+<footer>ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+<script>
+function updateSelection(type) {
+    document.querySelectorAll('.problem-card').forEach(c => c.classList.remove('selected'));
+    const card = document.getElementById('card-' + type);
+    if (card) card.classList.add('selected');
+    const targetDiv = document.getElementById('target-div');
+    targetDiv.style.display = type === 'clustering' ? 'none' : 'block';
+}
+</script>
+
+<script>
+(function () {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx    = canvas.getContext('2d');
+    let W, H, particles, columns, nodes, edges, frame = 0;
+    const CYAN   = '0,229,255';
+    const VIOLET = '123,47,247';
+    function rand(a,b){return Math.random()*(b-a)+a;}
+    function randInt(a,b){return Math.floor(rand(a,b));}
+    function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;build();}
+    function build(){
+        const colW=22;columns=[];
+        const nCols=Math.ceil(W/colW);
+        for(let i=0;i<nCols;i++){
+            columns.push({x:i*colW+colW/2,y:rand(-H,0),speed:rand(0.4,1.2),
+            chars:Array.from({length:randInt(8,24)},()=>Math.random()>0.5?'1':'0'),
+            opacity:rand(0.04,0.11),active:Math.random()>0.55});
         }
-    </script>
+        particles=[];
+        for(let i=0;i<55;i++){
+            const isCyan=Math.random()>0.4;
+            particles.push({x:rand(0,W),y:rand(0,H),vx:rand(-0.25,0.25),vy:rand(-0.25,0.25),
+            r:rand(1.2,3.2),color:isCyan?CYAN:VIOLET,opacity:rand(0.08,0.28),
+            pulsePhase:rand(0,Math.PI*2),pulseSpeed:rand(0.008,0.022)});
+        }
+        const layers=[2,4,5,4,2];nodes=[];edges=[];
+        const xStep=W/(layers.length+1);
+        layers.forEach((cnt,li)=>{
+            const x=xStep*(li+1);const yStep=H/(cnt+1);
+            for(let ni=0;ni<cnt;ni++){
+                nodes.push({x,y:yStep*(ni+1),layer:li,r:rand(3,5.5),
+                pulsePhase:rand(0,Math.PI*2),pulseSpeed:rand(0.008,0.024)});
+            }
+        });
+        for(let li=0;li<layers.length-1;li++){
+            const from=nodes.filter(n=>n.layer===li);
+            const to=nodes.filter(n=>n.layer===li+1);
+            from.forEach(f=>to.forEach(t=>{edges.push({from:f,to:t,active:false,timer:0,progress:0});}));
+        }
+    }
+    function draw(){
+        frame++;ctx.clearRect(0,0,W,H);
+        const bg=ctx.createLinearGradient(0,0,W,H);
+        bg.addColorStop(0,'#030810');bg.addColorStop(0.55,'#060e1c');bg.addColorStop(1,'#080618');
+        ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+        columns.forEach(col=>{
+            if(!col.active)return;
+            col.y+=col.speed;
+            if(col.y>H+col.chars.length*14)col.y=rand(-200,-50);
+            col.chars.forEach((ch,i)=>{
+                const cy=col.y+i*14;if(cy<-14||cy>H+14)return;
+                const fade=i===0?0.9:col.opacity*(1-i/col.chars.length);
+                ctx.font='11px Share Tech Mono,monospace';
+                ctx.fillStyle=`rgba(${CYAN},${fade})`;ctx.fillText(ch,col.x,cy);
+            });
+            if(frame%12===0&&Math.random()>0.7){const idx=randInt(0,col.chars.length);col.chars[idx]=Math.random()>0.5?'1':'0';}
+        });
+        particles.forEach(p=>{
+            p.x+=p.vx;p.y+=p.vy;
+            if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+            p.pulsePhase+=p.pulseSpeed;
+            const r=p.r*(1+Math.sin(p.pulsePhase)*0.3);
+            const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*3);
+            grd.addColorStop(0,`rgba(${p.color},${p.opacity})`);grd.addColorStop(1,`rgba(${p.color},0)`);
+            ctx.beginPath();ctx.arc(p.x,p.y,r*3,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+        });
+        if(frame%50===0){const e=edges[randInt(0,edges.length)];e.active=true;e.timer=0;e.progress=0;}
+        edges.forEach(e=>{
+            if(e.active){e.timer++;e.progress=Math.min(e.timer/70,1);if(e.timer>90)e.active=false;}
+            ctx.lineWidth=e.active?1.0:0.4;
+            ctx.strokeStyle=e.active?`rgba(${CYAN},${0.55*(1-Math.abs(e.progress-0.5)*2)})`:
+                `rgba(${CYAN},0.07)`;
+            ctx.beginPath();ctx.moveTo(e.from.x,e.from.y);ctx.lineTo(e.to.x,e.to.y);ctx.stroke();
+            if(e.active&&e.progress<1){
+                const sx=e.from.x+(e.to.x-e.from.x)*e.progress;
+                const sy=e.from.y+(e.to.y-e.from.y)*e.progress;
+                ctx.beginPath();ctx.arc(sx,sy,2.2,0,Math.PI*2);
+                ctx.fillStyle=`rgba(${CYAN},0.95)`;ctx.fill();
+            }
+        });
+        nodes.forEach(n=>{
+            n.pulsePhase+=n.pulseSpeed;
+            const pulse=1+Math.sin(n.pulsePhase)*0.28;const r=n.r*pulse;
+            const grd=ctx.createRadialGradient(n.x,n.y,r*0.4,n.x,n.y,r*2.8);
+            grd.addColorStop(0,`rgba(${CYAN},0.14)`);grd.addColorStop(1,`rgba(${CYAN},0)`);
+            ctx.beginPath();ctx.arc(n.x,n.y,r*2.8,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+            ctx.beginPath();ctx.arc(n.x,n.y,r,0,Math.PI*2);
+            ctx.fillStyle='rgba(3,8,16,0.88)';ctx.fill();
+            ctx.strokeStyle=`rgba(${CYAN},0.75)`;ctx.lineWidth=0.8;ctx.stroke();
+            ctx.beginPath();ctx.arc(n.x,n.y,r*0.32,0,Math.PI*2);
+            ctx.fillStyle=`rgba(${CYAN},1)`;ctx.fill();
+        });
+        requestAnimationFrame(draw);
+    }
+    window.addEventListener('resize',resize);resize();draw();
+})();
+</script>
 
 </body>
-
 </html>
