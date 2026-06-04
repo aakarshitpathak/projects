@@ -8,14 +8,12 @@ import pandas as pd
 # Allowed file extensions
 ALLOWED_EXTENSIONS = {'csv', 'xlsx', 'xls', 'json', 'xml', 'html', 'htm'}
 
-
 def allowed_file(filename: str) -> bool:
     """
     Check if the uploaded filename has an allowed extension.
     Returns True if allowed, False otherwise.
     """
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 def load_dataframe(filepath: str) -> pd.DataFrame:
     """
