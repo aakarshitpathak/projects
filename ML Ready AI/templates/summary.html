@@ -1,307 +1,850 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Summary — ML Ready AI</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* ── Summary-specific styles ── */
-        .metrics-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 18px;
-            margin-bottom: 32px;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Summary — ML Ready AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-        .metric-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 22px 18px;
-            text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+  <style>
+    :root {
+      --cyan:    #00e5ff;
+      --violet:  #7b2ff7;
+      --green:   #00ff88;
+      --yellow:  #ffd600;
+      --red:     #ff3d6e;
+      --bg:      #030810;
+      --bg-card: rgba(6,14,28,0.80);
+      --border:  rgba(0,229,255,0.1);
+      --text:    #eef4ff;
+      --muted:   rgba(170,200,255,0.42);
+      --mono:    'Share Tech Mono', monospace;
+    }
 
-        .metric-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow);
-        }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior: smooth; }
 
-        .metric-value {
-            font-size: 2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, var(--accent), var(--accent2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+    }
 
-        .metric-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 6px;
-        }
+    /* ═══ CANVAS ═══ */
+    #bg-canvas {
+      position: fixed; inset: 0;
+      width:100%; height:100%;
+      z-index: 0;
+    }
 
-        /* Missing value pill */
-        .pill-ok {
-            background: rgba(34, 197, 94, 0.15);
-            color: #86efac;
-            border: 1px solid #22c55e;
-            border-radius: 50px;
-            padding: 3px 10px;
-            font-size: 0.78rem;
-            font-weight: 700;
-        }
+    /* ═══ AURORA ═══ */
+    .aurora { position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
+    .ab {
+      position:absolute; border-radius:50%;
+      filter: blur(90px); mix-blend-mode: screen;
+    }
+    .ab1 {
+      width:650px; height:500px;
+      background: radial-gradient(ellipse, rgba(0,229,255,0.13) 0%, transparent 70%);
+      top:-180px; left:-180px;
+      animation: af1 22s ease-in-out infinite alternate;
+    }
+    .ab2 {
+      width:550px; height:550px;
+      background: radial-gradient(ellipse, rgba(123,47,247,0.17) 0%, transparent 70%);
+      bottom:-180px; right:-140px;
+      animation: af2 28s ease-in-out infinite alternate;
+    }
+    .ab3 {
+      width:360px; height:360px;
+      background: radial-gradient(ellipse, rgba(0,255,136,0.07) 0%, transparent 70%);
+      top:45%; left:60%;
+      animation: af3 18s ease-in-out infinite alternate;
+    }
+    @keyframes af1 { to { transform:translate(50px,70px) scale(1.1); } }
+    @keyframes af2 { to { transform:translate(-45px,-55px) scale(1.12); } }
+    @keyframes af3 { to { transform:translate(-35px,45px) scale(0.9); } }
 
-        .pill-warn {
-            background: rgba(234, 179, 8, 0.15);
-            color: #fde047;
-            border: 1px solid #eab308;
-            border-radius: 50px;
-            padding: 3px 10px;
-            font-size: 0.78rem;
-            font-weight: 700;
-        }
+    /* ═══ NAVBAR ═══ */
+    .navbar {
+      position: fixed; top:0; left:0; right:0; z-index:200;
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(3,8,16,0.6);
+      backdrop-filter: blur(18px) saturate(1.5);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      font-family:'Syne',sans-serif; font-weight:800; font-size:1.1rem;
+      color:var(--text); text-decoration:none;
+      display:flex; align-items:center; gap:0.5rem; letter-spacing:-0.5px;
+    }
+    .nav-dot {
+      width:7px; height:7px; border-radius:50%;
+      background:var(--cyan); box-shadow:0 0 10px var(--cyan);
+      animation: blink 2s ease-in-out infinite;
+    }
+    .nav-brand .acc { color:var(--cyan); }
+    .nav-links { display:flex; gap:2rem; }
+    .nav-links a {
+      font-size:0.84rem; font-weight:500; color:var(--muted);
+      text-decoration:none; transition:color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color:var(--cyan); }
+    @keyframes blink {
+      0%,100%{opacity:1;box-shadow:0 0 10px var(--cyan);}
+      50%{opacity:0.3;box-shadow:0 0 3px var(--cyan);}
+    }
 
-        .pill-danger {
-            background: rgba(239, 68, 68, 0.15);
-            color: #fca5a5;
-            border: 1px solid #ef4444;
-            border-radius: 50px;
-            padding: 3px 10px;
-            font-size: 0.78rem;
-            font-weight: 700;
-        }
+    /* ═══ PAGE WRAP ═══ */
+    .page-wrap {
+      position:relative; z-index:10;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 7.5rem 2rem 5rem;
+    }
 
-        /* dtype badge */
-        .dtype-badge {
-            background: rgba(108, 99, 255, 0.15);
-            color: var(--accent2);
-            border-radius: 6px;
-            padding: 2px 10px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            font-family: monospace;
-        }
+    /* ═══ PAGE HEADER ═══ */
+    .page-header {
+      margin-bottom: 3rem;
+      animation: riseIn 0.7s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .eyebrow {
+      display:inline-flex; align-items:center; gap:0.5rem;
+      font-family:var(--mono); font-size:10px; letter-spacing:3.5px;
+      color:var(--cyan); text-transform:uppercase;
+      padding:0.4rem 1rem;
+      border:1px solid rgba(0,229,255,0.18); border-radius:2px;
+      background:rgba(0,229,255,0.04); backdrop-filter:blur(8px);
+      margin-bottom:1.1rem;
+    }
+    .eyebrow-dot {
+      width:5px; height:5px; border-radius:50%;
+      background:var(--cyan); box-shadow:0 0 6px var(--cyan);
+      animation:blink 1.8s ease-in-out infinite;
+    }
+    .page-header h1 {
+      font-family:'Syne',sans-serif; font-size:clamp(2rem,4.5vw,3rem);
+      font-weight:800; letter-spacing:-2px; line-height:1.04;
+      color:var(--text); margin-bottom:0.55rem;
+    }
+    .page-header h1 .grad {
+      background: linear-gradient(110deg, var(--cyan) 0%, #b48bff 50%, var(--violet) 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .file-tag {
+      display:inline-flex; align-items:center; gap:0.5rem;
+      font-family:var(--mono); font-size:11px; letter-spacing:1px;
+      color:var(--cyan); opacity:0.75;
+      padding:0.35rem 0.9rem;
+      border:1px solid rgba(0,229,255,0.15); border-radius:2px;
+      background:rgba(0,229,255,0.03);
+    }
 
-        /* Stats table scroll wrapper */
-        .table-scroll {
-            overflow-x: auto;
-        }
+    /* ═══ METRIC CARDS ═══ */
+    .metrics-row {
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:16px;
+      margin-bottom:2.2rem;
+    }
+    @media(max-width:700px){ .metrics-row { grid-template-columns:repeat(2,1fr); } }
 
-        /* Section header */
-        .sec-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
+    .metric-card {
+      position:relative;
+      background:var(--bg-card);
+      border:1px solid var(--border);
+      border-radius:5px;
+      padding:1.8rem 1.4rem 1.5rem;
+      text-align:center;
+      backdrop-filter:blur(16px);
+      overflow:hidden;
+      animation: riseIn 0.7s cubic-bezier(0.16,1,0.3,1) both;
+      transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .metric-card:hover {
+      transform:translateY(-5px);
+      border-color:rgba(0,229,255,0.35);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 24px rgba(0,229,255,0.1);
+    }
+    .metric-card:nth-child(1){animation-delay:0.05s;}
+    .metric-card:nth-child(2){animation-delay:0.12s;}
+    .metric-card:nth-child(3){animation-delay:0.19s;}
+    .metric-card:nth-child(4){animation-delay:0.26s;}
 
-        .sec-header h2 {
-            font-size: 1.15rem;
-            font-weight: 800;
-        }
+    /* top glow bar */
+    .metric-card::before {
+      content:'';
+      position:absolute; top:0; left:0; right:0; height:2px;
+      background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+      opacity:0; transition:opacity 0.3s;
+    }
+    .metric-card:hover::before { opacity:1; }
 
-        .sec-header .pill-count {
-            background: rgba(108, 99, 255, 0.15);
-            color: var(--accent);
-            border-radius: 50px;
-            padding: 2px 12px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
+    /* corner bracket */
+    .metric-card::after {
+      content:'';
+      position:absolute; top:0; left:0;
+      width:20px; height:20px;
+      border-top:1px solid rgba(0,229,255,0.3);
+      border-left:1px solid rgba(0,229,255,0.3);
+    }
 
-        /* Next steps bar */
-        .next-bar {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-    </style>
+    .metric-icon {
+      font-size:1.3rem; margin-bottom:0.6rem;
+      display:block;
+    }
+    .metric-value {
+      font-family:'Syne',sans-serif;
+      font-size:2.4rem; font-weight:800;
+      line-height:1;
+      background:linear-gradient(135deg, var(--cyan), #a78bff);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      margin-bottom:0.4rem;
+      display:block;
+    }
+    .metric-label {
+      font-family:var(--mono);
+      font-size:9px; letter-spacing:2.5px;
+      color:var(--muted); text-transform:uppercase;
+    }
+
+    /* ═══ SECTION CARD ═══ */
+    .s-card {
+      position:relative;
+      background:var(--bg-card);
+      border:1px solid var(--border);
+      border-radius:5px;
+      padding:2rem 2.2rem;
+      backdrop-filter:blur(18px);
+      box-shadow:0 12px 48px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,229,255,0.03);
+      margin-bottom:1.8rem;
+      overflow:hidden;
+      animation: riseIn 0.8s 0.15s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    /* top-left HUD bracket */
+    .s-card::before {
+      content:'';
+      position:absolute; top:0; left:0;
+      width:60px; height:60px;
+      border-top:1.5px solid rgba(0,229,255,0.3);
+      border-left:1.5px solid rgba(0,229,255,0.3);
+      pointer-events:none;
+    }
+    /* inner top shimmer */
+    .s-card-shine {
+      position:absolute; top:0; left:0; right:0; height:1px;
+      background:linear-gradient(90deg, transparent, rgba(0,229,255,0.25), transparent);
+    }
+
+    /* ═══ SECTION HEADER ═══ */
+    .sec-hdr {
+      display:flex; align-items:center; gap:12px;
+      margin-bottom:1.4rem;
+    }
+    .sec-hdr h2 {
+      font-family:'Syne',sans-serif;
+      font-size:1.05rem; font-weight:800; letter-spacing:-0.3px;
+    }
+    .sec-hdr .sec-icon {
+      width:34px; height:34px;
+      display:flex; align-items:center; justify-content:center;
+      border:1px solid rgba(0,229,255,0.2);
+      border-radius:4px;
+      background:rgba(0,229,255,0.06);
+      font-size:1rem;
+      flex-shrink:0;
+    }
+    .pill-count {
+      font-family:var(--mono); font-size:9.5px; letter-spacing:1.5px;
+      color:var(--cyan);
+      border:1px solid rgba(0,229,255,0.2);
+      background:rgba(0,229,255,0.05);
+      border-radius:2px;
+      padding:3px 10px;
+      margin-left:auto;
+    }
+
+    /* ═══ TABLE ═══ */
+    .table-scroll { overflow-x:auto; }
+    table {
+      width:100%; border-collapse:collapse;
+      font-size:0.865rem;
+    }
+    thead tr {
+      border-bottom:1px solid rgba(0,229,255,0.12);
+    }
+    thead th {
+      font-family:var(--mono);
+      font-size:9px; letter-spacing:2px;
+      color:var(--muted); text-transform:uppercase;
+      padding:0.7rem 1rem; text-align:left;
+      white-space:nowrap;
+      font-weight:400;
+    }
+    tbody tr {
+      border-bottom:1px solid rgba(255,255,255,0.04);
+      transition:background 0.18s;
+    }
+    tbody tr:hover { background:rgba(0,229,255,0.035); }
+    tbody td {
+      padding:0.75rem 1rem;
+      color:rgba(220,235,255,0.75);
+      vertical-align:middle;
+    }
+    tbody td strong { color:var(--text); font-weight:600; }
+    tbody tr:last-child { border-bottom:none; }
+
+    /* row index */
+    .row-idx {
+      font-family:var(--mono); font-size:10px;
+      color:rgba(0,229,255,0.3); letter-spacing:1px;
+    }
+
+    /* dtype badge */
+    .dtype-badge {
+      font-family:var(--mono); font-size:10px; letter-spacing:1px;
+      color:rgba(180,139,255,0.9);
+      border:1px solid rgba(123,47,247,0.25);
+      background:rgba(123,47,247,0.1);
+      border-radius:3px;
+      padding:3px 10px;
+    }
+
+    /* status pills */
+    .pill {
+      display:inline-flex; align-items:center; gap:5px;
+      border-radius:3px; padding:4px 11px;
+      font-family:var(--mono); font-size:9.5px; letter-spacing:1px;
+      font-weight:700; white-space:nowrap;
+    }
+    .pill-ok     { background:rgba(0,255,136,0.08); border:1px solid rgba(0,255,136,0.3); color:#00ff88; }
+    .pill-warn   { background:rgba(255,214,0,0.08); border:1px solid rgba(255,214,0,0.3); color:#ffd600; }
+    .pill-danger { background:rgba(255,61,110,0.08); border:1px solid rgba(255,61,110,0.3); color:#ff3d6e; }
+    .pill-dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+
+    /* missing % bar */
+    .pct-wrap { display:flex; align-items:center; gap:8px; }
+    .pct-bar-bg {
+      flex:1; height:3px; border-radius:2px;
+      background:rgba(255,255,255,0.06);
+      min-width:60px;
+    }
+    .pct-bar-fill {
+      height:100%; border-radius:2px;
+      background:linear-gradient(90deg, var(--cyan), var(--violet));
+      transition:width 1s cubic-bezier(0.16,1,0.3,1);
+    }
+    .pct-num {
+      font-family:var(--mono); font-size:10px;
+      color:var(--muted); letter-spacing:0.5px;
+      min-width:36px; text-align:right;
+    }
+
+    /* stat value highlight */
+    .stat-val {
+      font-family:var(--mono); font-size:11.5px; letter-spacing:0.3px;
+      color:rgba(200,225,255,0.8);
+    }
+    .stat-val.highlight { color:var(--cyan); }
+
+    /* ═══ DATA PREVIEW ═══ */
+    .preview-table tbody td {
+      font-family:var(--mono); font-size:11.5px; letter-spacing:0.2px;
+      color:rgba(180,210,255,0.65);
+    }
+    .preview-table tbody td:first-child {
+      color:rgba(0,229,255,0.35);
+    }
+
+    /* ═══ NEXT STEPS ═══ */
+    .next-card {
+      position:relative;
+      background:rgba(0,229,255,0.04);
+      border:1px solid rgba(0,229,255,0.18);
+      border-radius:5px;
+      padding:2rem 2.2rem;
+      backdrop-filter:blur(18px);
+      overflow:hidden;
+      animation: riseIn 0.8s 0.3s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .next-card::before {
+      content:'';
+      position:absolute; inset:0;
+      background:radial-gradient(ellipse at 20% 50%, rgba(0,229,255,0.06) 0%, transparent 65%);
+      pointer-events:none;
+    }
+    .next-card h3 {
+      font-family:'Syne',sans-serif;
+      font-size:1rem; font-weight:800; letter-spacing:-0.3px;
+      margin-bottom:1.3rem;
+      color:var(--text);
+    }
+    .next-bar { display:flex; gap:12px; flex-wrap:wrap; }
+
+    .btn-primary-glow {
+      position:relative;
+      display:inline-flex; align-items:center; gap:0.5rem;
+      padding:0.85rem 1.8rem;
+      background:var(--cyan);
+      color:#030810;
+      font-family:'Syne',sans-serif; font-size:0.88rem; font-weight:700;
+      letter-spacing:0.3px; text-decoration:none; border-radius:3px;
+      overflow:hidden;
+      transition:transform 0.2s, box-shadow 0.2s;
+      box-shadow:0 0 28px rgba(0,229,255,0.25), 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .btn-primary-glow::before {
+      content:'';
+      position:absolute; inset:0;
+      background:linear-gradient(135deg,rgba(255,255,255,0.2) 0%,transparent 55%);
+      pointer-events:none;
+    }
+    .btn-primary-glow:hover {
+      transform:translateY(-2px);
+      box-shadow:0 0 44px rgba(0,229,255,0.38), 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .btn-ghost {
+      display:inline-flex; align-items:center; gap:0.5rem;
+      padding:0.85rem 1.8rem;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.04);
+      color:rgba(200,220,255,0.7);
+      font-family:'Syne',sans-serif; font-size:0.88rem; font-weight:700;
+      letter-spacing:0.3px; text-decoration:none; border-radius:3px;
+      backdrop-filter:blur(8px);
+      transition:background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .btn-ghost:hover {
+      background:rgba(255,255,255,0.09);
+      border-color:rgba(255,255,255,0.22);
+      color:#fff;
+    }
+
+    /* ═══ FLASH ═══ */
+    .flash {
+      padding:0.75rem 1.1rem; border-radius:3px;
+      font-size:0.87rem; font-weight:500;
+      margin-bottom:1rem; border:1px solid;
+      animation:riseIn 0.4s ease both;
+    }
+    .flash.error   { background:rgba(255,60,80,0.08); border-color:rgba(255,60,80,0.3); color:#ff8090; }
+    .flash.success { background:rgba(0,229,255,0.07); border-color:rgba(0,229,255,0.25); color:var(--cyan); }
+
+    /* ═══ FOOTER ═══ */
+    footer {
+      position:relative; z-index:10;
+      text-align:center; padding:1.5rem;
+      font-family:var(--mono); font-size:10px; letter-spacing:2.5px;
+      color:rgba(0,229,255,0.14); text-transform:uppercase;
+    }
+
+    @keyframes riseIn {
+      from { opacity:0; transform:translateY(22px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    @media(max-width:640px){
+      .navbar { padding:1rem 1.2rem; }
+      .nav-links { gap:1rem; }
+      .s-card { padding:1.4rem 1.1rem; }
+      .next-card { padding:1.4rem 1.1rem; }
+      .page-wrap { padding:6rem 1rem 4rem; }
+    }
+  </style>
 </head>
-
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
-        <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/upload">Upload</a>
-            <a href="/summary" class="active">Summary</a>
-        </div>
-    </nav>
+<canvas id="bg-canvas"></canvas>
 
-    <div class="page-container">
+<div class="aurora">
+  <div class="ab ab1"></div>
+  <div class="ab ab2"></div>
+  <div class="ab ab3"></div>
+</div>
 
-        <!-- Page title + file name -->
-        <h1 class="page-title">📊 Data Summary</h1>
-        <p class="page-subtitle">
-            File: <strong style="color:var(--accent2)">{{ filename }}</strong>
-        </p>
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a class="nav-brand" href="/">
+    <span class="nav-dot"></span>
+    ML <span class="acc">Ready</span> AI
+  </a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/upload">Upload</a>
+    <a href="/summary" class="active">Summary</a>
+  </div>
+</nav>
 
-        <!-- Flash messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}{% for cat, msg in messages %}
-        <div class="flash {{ cat }}">{{ msg }}</div>
-        {% endfor %}{% endif %}
-        {% endwith %}
+<div class="page-wrap">
 
-        <!-- ── 1. KEY METRICS ───────────────────────────── -->
-        <div class="metrics-row">
-            <div class="metric-card">
-                <div class="metric-value">{{ summary.rows }}</div>
-                <div class="metric-label">Rows</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value">{{ summary.cols }}</div>
-                <div class="metric-label">Columns</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value">
-                    {{ summary.columns_info | selectattr('missing', '>', 0) | list | length }}
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="eyebrow">
+      <span class="eyebrow-dot"></span>
+      // dataset analysis report
+    </div>
+    <h1>Data <span class="grad">Summary</span></h1>
+    <div class="file-tag">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+      {{ filename }}
+    </div>
+  </div>
+
+  <!-- FLASH -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for cat, msg in messages %}
+      <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}{% endif %}
+  {% endwith %}
+
+  <!-- ── 1. METRIC CARDS ── -->
+  <div class="metrics-row">
+    <div class="metric-card">
+      <span class="metric-icon">⬡</span>
+      <span class="metric-value">{{ summary.rows }}</span>
+      <span class="metric-label">Total Rows</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-icon">⬡</span>
+      <span class="metric-value">{{ summary.cols }}</span>
+      <span class="metric-label">Columns</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-icon">⬡</span>
+      <span class="metric-value">{{ summary.columns_info | selectattr('missing', '>', 0) | list | length }}</span>
+      <span class="metric-label">Missing Cols</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-icon">⬡</span>
+      <span class="metric-value">{{ summary.stats | length }}</span>
+      <span class="metric-label">Numeric Cols</span>
+    </div>
+  </div>
+
+  <!-- ── 2. COLUMN INFO ── -->
+  <div class="s-card">
+    <div class="s-card-shine"></div>
+    <div class="sec-hdr">
+      <div class="sec-icon">🗂</div>
+      <h2>Column Information</h2>
+      <span class="pill-count">{{ summary.cols }} COLUMNS</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Column Name</th>
+            <th>Data Type</th>
+            <th>Status</th>
+            <th>Missing %</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for col in summary.columns_info %}
+          <tr>
+            <td class="row-idx">{{ '%02d' % loop.index }}</td>
+            <td><strong>{{ col.name }}</strong></td>
+            <td><span class="dtype-badge">{{ col.dtype }}</span></td>
+            <td>
+              {% if col.missing == 0 %}
+                <span class="pill pill-ok"><span class="pill-dot"></span>CLEAN</span>
+              {% elif col.missing_pct < 20 %}
+                <span class="pill pill-warn"><span class="pill-dot"></span>{{ col.missing }} MISSING</span>
+              {% else %}
+                <span class="pill pill-danger"><span class="pill-dot"></span>{{ col.missing }} MISSING</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="pct-wrap">
+                <div class="pct-bar-bg">
+                  <div class="pct-bar-fill" style="width:{{ [col.missing_pct, 100]|min }}%"></div>
                 </div>
-                <div class="metric-label">Cols with Missing</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value">{{ summary.stats | length }}</div>
-                <div class="metric-label">Numeric Cols</div>
-            </div>
-        </div>
+                <span class="pct-num">{{ col.missing_pct }}%</span>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-        <!-- ── 2. COLUMN INFO TABLE ─────────────────────── -->
-        <div class="card">
-            <div class="sec-header">
-                <h2>🗂️ Column Information</h2>
-                <span class="pill-count">{{ summary.cols }} columns</span>
-            </div>
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Column Name</th>
-                            <th>Data Type</th>
-                            <th>Missing Values</th>
-                            <th>Missing %</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for col in summary.columns_info %}
-                        <tr>
-                            <td>{{ loop.index }}</td>
-                            <td><strong>{{ col.name }}</strong></td>
-                            <td><span class="dtype-badge">{{ col.dtype }}</span></td>
-                            <td>
-                                {% if col.missing == 0 %}
-                                <span class="pill-ok">✔ None</span>
-                                {% elif col.missing_pct < 20 %} <span class="pill-warn">⚠ {{ col.missing }}</span>
-                                    {% else %}
-                                    <span class="pill-danger">✖ {{ col.missing }}</span>
-                                    {% endif %}
-                            </td>
-                            <td>{{ col.missing_pct }}%</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+  <!-- ── 3. DESCRIPTIVE STATS ── -->
+  {% if summary.stats %}
+  <div class="s-card">
+    <div class="s-card-shine"></div>
+    <div class="sec-hdr">
+      <div class="sec-icon">📈</div>
+      <h2>Descriptive Statistics</h2>
+      <span class="pill-count">NUMERIC ONLY</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Column</th>
+            <th>Count</th>
+            <th>Mean</th>
+            <th>Std Dev</th>
+            <th>Min</th>
+            <th>25%</th>
+            <th>Median</th>
+            <th>75%</th>
+            <th>Max</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for col, s in summary.stats.items() %}
+          <tr>
+            <td><strong>{{ col }}</strong></td>
+            <td><span class="stat-val">{{ s.get('count','—') }}</span></td>
+            <td><span class="stat-val highlight">{{ s.get('mean','—') }}</span></td>
+            <td><span class="stat-val">{{ s.get('std','—') }}</span></td>
+            <td><span class="stat-val">{{ s.get('min','—') }}</span></td>
+            <td><span class="stat-val">{{ s.get('25%','—') }}</span></td>
+            <td><span class="stat-val highlight">{{ s.get('50%','—') }}</span></td>
+            <td><span class="stat-val">{{ s.get('75%','—') }}</span></td>
+            <td><span class="stat-val">{{ s.get('max','—') }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="s-card">
+    <div class="s-card-shine"></div>
+    <p style="color:var(--muted); font-size:0.88rem;">
+      <span class="pill pill-warn" style="margin-right:8px;"><span class="pill-dot"></span>NOTE</span>
+      No numeric columns found — statistics table is not available.
+    </p>
+  </div>
+  {% endif %}
 
-        <!-- ── 3. DESCRIPTIVE STATISTICS ───────────────── -->
-        {% if summary.stats %}
-        <div class="card">
-            <div class="sec-header">
-                <h2>📈 Descriptive Statistics</h2>
-                <span class="pill-count">Numeric columns only</span>
-            </div>
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Column</th>
-                            <th>Count</th>
-                            <th>Mean</th>
-                            <th>Std Dev</th>
-                            <th>Min</th>
-                            <th>25%</th>
-                            <th>50% (Median)</th>
-                            <th>75%</th>
-                            <th>Max</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for col, s in summary.stats.items() %}
-                        <tr>
-                            <td><strong>{{ col }}</strong></td>
-                            <td>{{ s.get('count', '—') }}</td>
-                            <td>{{ s.get('mean', '—') }}</td>
-                            <td>{{ s.get('std', '—') }}</td>
-                            <td>{{ s.get('min', '—') }}</td>
-                            <td>{{ s.get('25%', '—') }}</td>
-                            <td>{{ s.get('50%', '—') }}</td>
-                            <td>{{ s.get('75%', '—') }}</td>
-                            <td>{{ s.get('max', '—') }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% else %}
-        <div class="card">
-            <p style="color:var(--text-muted)">⚠️ No numeric columns found — statistics table is not available.</p>
-        </div>
-        {% endif %}
+  <!-- ── 4. DATA PREVIEW ── -->
+  <div class="s-card">
+    <div class="s-card-shine"></div>
+    <div class="sec-hdr">
+      <div class="sec-icon">👁</div>
+      <h2>Data Preview</h2>
+      <span class="pill-count">FIRST 5 ROWS</span>
+    </div>
+    <div class="table-scroll">
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            {% for col in summary.preview_cols %}
+            <th>{{ col }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in summary.preview_rows %}
+          <tr>
+            <td class="row-idx">{{ '%02d' % loop.index }}</td>
+            {% for val in row %}
+            <td>{{ val }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-        <!-- ── 4. DATA PREVIEW (first 5 rows) ───────────── -->
-        <div class="card">
-            <div class="sec-header">
-                <h2>👁️ Data Preview</h2>
-                <span class="pill-count">First 5 rows</span>
-            </div>
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            {% for col in summary.preview_cols %}
-                            <th>{{ col }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in summary.preview_rows %}
-                        <tr>
-                            {% for val in row %}
-                            <td>{{ val }}</td>
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+  <!-- ── 5. NEXT STEPS ── -->
+  <div class="next-card">
+    <h3>⚡ What would you like to do next?</h3>
+    <div class="next-bar">
+      <a href="/eda" class="btn-primary-glow">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Explore Data (EDA)
+      </a>
+      <a href="/cleaning" class="btn-ghost">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+        Clean Data
+      </a>
+    </div>
+  </div>
 
-        <!-- ── 5. NEXT STEPS ─────────────────────────────── -->
-        <div class="card" style="border-left: 3px solid var(--accent2);">
-            <h3 style="margin-bottom:14px">⚡ What would you like to do next?</h3>
-            <div class="next-bar">
-                <a href="/eda" class="btn-primary" style="font-size:0.9rem; padding:11px 24px;">📊 Explore Data
-                    (EDA)</a>
-                <a href="/cleaning" class="btn-secondary" style="font-size:0.9rem; padding:11px 24px;">🧹 Clean Data</a>
-            </div>
-        </div>
+</div><!-- /page-wrap -->
 
-    </div><!-- /page-container -->
+<footer>ML Ready AI &copy; 2025 — Final Year Project</footer>
 
-    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+<script>
+/* ═══════════════════════════════
+   CANVAS BACKGROUND
+   Neural net + binary rain + particles
+═══════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, cols, particles, nodes, edges, frame=0;
+  const C='0,229,255', V='123,47,247';
+  const rand=(a,b)=>Math.random()*(b-a)+a;
+  const ri=(a,b)=>Math.floor(rand(a,b));
+
+  function resize(){
+    W=canvas.width=window.innerWidth;
+    H=canvas.height=window.innerHeight;
+    build();
+  }
+
+  function build(){
+    /* binary rain */
+    cols=[];
+    const cw=24, n=Math.ceil(W/cw);
+    for(let i=0;i<n;i++){
+      cols.push({
+        x:i*cw+cw/2, y:rand(-H,0),
+        spd:rand(0.35,1.1),
+        chars:Array.from({length:ri(8,22)},()=>Math.random()>.5?'1':'0'),
+        op:rand(0.03,0.09),
+        on:Math.random()>.5
+      });
+    }
+
+    /* floating particles */
+    particles=[];
+    for(let i=0;i<45;i++){
+      const isc=Math.random()>.4;
+      particles.push({
+        x:rand(0,W),y:rand(0,H),
+        vx:rand(-.2,.2),vy:rand(-.2,.2),
+        r:rand(1,3),
+        col:isc?C:V,
+        op:rand(0.06,0.22),
+        ph:rand(0,Math.PI*2),
+        ps:rand(0.007,0.02)
+      });
+    }
+
+    /* neural net */
+    const layers=[2,4,5,4,2];
+    nodes=[]; edges=[];
+    const xs=W/(layers.length+1);
+    layers.forEach((cnt,li)=>{
+      const x=xs*(li+1), ys=H/(cnt+1);
+      for(let ni=0;ni<cnt;ni++)
+        nodes.push({x,y:ys*(ni+1),layer:li,r:rand(2.5,5),ph:rand(0,Math.PI*2),ps:rand(0.007,0.02)});
+    });
+    for(let li=0;li<layers.length-1;li++){
+      const fr=nodes.filter(n=>n.layer===li);
+      const to=nodes.filter(n=>n.layer===li+1);
+      fr.forEach(f=>to.forEach(t=>edges.push({from:f,to:t,active:false,timer:0,prog:0})));
+    }
+  }
+
+  function draw(){
+    frame++;
+    ctx.clearRect(0,0,W,H);
+
+    /* bg */
+    const bg=ctx.createLinearGradient(0,0,W,H);
+    bg.addColorStop(0,'#030810');
+    bg.addColorStop(.6,'#060e1c');
+    bg.addColorStop(1,'#070618');
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+    /* grid */
+    ctx.strokeStyle='rgba(0,229,255,0.025)'; ctx.lineWidth=.5;
+    for(let gx=0;gx<W;gx+=52){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+    for(let gy=0;gy<H;gy+=52){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+
+    /* binary rain */
+    cols.forEach(col=>{
+      if(!col.on)return;
+      col.y+=col.spd;
+      if(col.y>H+col.chars.length*13) col.y=rand(-180,-30);
+      col.chars.forEach((ch,i)=>{
+        const cy=col.y+i*13;
+        if(cy<-13||cy>H+13)return;
+        const fd=i===0?.85:col.op*(1-i/col.chars.length);
+        ctx.font=`10px Share Tech Mono,monospace`;
+        ctx.fillStyle=`rgba(${C},${fd})`;
+        ctx.fillText(ch,col.x,cy);
+      });
+      if(frame%14===0&&Math.random()>.7){
+        col.chars[ri(0,col.chars.length)]=Math.random()>.5?'1':'0';
+      }
+    });
+
+    /* particles */
+    particles.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0)p.x=W; if(p.x>W)p.x=0;
+      if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+      p.ph+=p.ps;
+      const r=p.r*(1+Math.sin(p.ph)*.3);
+      const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*3.5);
+      g.addColorStop(0,`rgba(${p.col},${p.op})`);
+      g.addColorStop(1,`rgba(${p.col},0)`);
+      ctx.beginPath(); ctx.arc(p.x,p.y,r*3.5,0,Math.PI*2);
+      ctx.fillStyle=g; ctx.fill();
+    });
+
+    /* edges */
+    if(frame%55===0){
+      const e=edges[ri(0,edges.length)];
+      e.active=true; e.timer=0; e.prog=0;
+    }
+    edges.forEach(e=>{
+      if(e.active){
+        e.timer++; e.prog=Math.min(e.timer/65,1);
+        if(e.timer>85) e.active=false;
+      }
+      ctx.lineWidth=e.active?1:.35;
+      ctx.strokeStyle=e.active
+        ?`rgba(${C},${.5*(1-Math.abs(e.prog-.5)*2)})`
+        :`rgba(${C},0.055)`;
+      ctx.beginPath(); ctx.moveTo(e.from.x,e.from.y); ctx.lineTo(e.to.x,e.to.y); ctx.stroke();
+      if(e.active&&e.prog<1){
+        const sx=e.from.x+(e.to.x-e.from.x)*e.prog;
+        const sy=e.from.y+(e.to.y-e.from.y)*e.prog;
+        ctx.beginPath(); ctx.arc(sx,sy,2,0,Math.PI*2);
+        ctx.fillStyle=`rgba(${C},.9)`; ctx.fill();
+      }
+    });
+
+    /* nodes */
+    nodes.forEach(n=>{
+      n.ph+=n.ps;
+      const r=n.r*(1+Math.sin(n.ph)*.28);
+      const g=ctx.createRadialGradient(n.x,n.y,r*.4,n.x,n.y,r*2.8);
+      g.addColorStop(0,`rgba(${C},0.12)`); g.addColorStop(1,`rgba(${C},0)`);
+      ctx.beginPath(); ctx.arc(n.x,n.y,r*2.8,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2);
+      ctx.fillStyle='rgba(3,8,16,.9)'; ctx.fill();
+      ctx.strokeStyle=`rgba(${C},.65)`; ctx.lineWidth=.8; ctx.stroke();
+      ctx.beginPath(); ctx.arc(n.x,n.y,r*.3,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${C},1)`; ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize',resize);
+  resize(); draw();
+})();
+
+/* Animate missing % bars on load */
+window.addEventListener('load',()=>{
+  document.querySelectorAll('.pct-bar-fill').forEach(bar=>{
+    const w=bar.style.width;
+    bar.style.width='0';
+    setTimeout(()=>{ bar.style.width=w; }, 300);
+  });
+});
+</script>
 
 </body>
-
 </html>
