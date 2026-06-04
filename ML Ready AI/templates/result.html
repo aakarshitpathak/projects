@@ -5,119 +5,503 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Model Evaluation — ML Ready AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
+        :root {
+            --cyan:   #00e5ff;
+            --violet: #7b2ff7;
+            --pink:   #ff2d78;
+            --green:  #00e5a0;
+            --bg:     #030810;
+            --card-bg: rgba(6,14,28,0.82);
+            --border: rgba(0,229,255,0.12);
+            --text:   #eef4ff;
+            --muted:  rgba(170,200,255,0.42);
+            --mono:   'Share Tech Mono', monospace;
+            --amber:  #fcb55c;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ══ CANVAS ══ */
+        #bg-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+
+        /* ══ AURORA ══ */
+        .aurora { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+        .aurora-blob { position: absolute; border-radius: 50%; filter: blur(80px); mix-blend-mode: screen; opacity: 0.55; }
+        .ab1 { width:700px;height:500px;background:radial-gradient(ellipse,rgba(0,229,255,0.18) 0%,transparent 70%);top:-180px;left:-200px;animation:float1 20s ease-in-out infinite alternate; }
+        .ab2 { width:600px;height:600px;background:radial-gradient(ellipse,rgba(123,47,247,0.22) 0%,transparent 70%);bottom:-200px;right:-150px;animation:float2 25s ease-in-out infinite alternate; }
+        .ab3 { width:400px;height:400px;background:radial-gradient(ellipse,rgba(255,45,120,0.12) 0%,transparent 70%);top:40%;left:55%;animation:float3 17s ease-in-out infinite alternate; }
+        .ab4 { width:350px;height:250px;background:radial-gradient(ellipse,rgba(0,229,255,0.1) 0%,transparent 70%);top:60%;left:10%;animation:float1 22s ease-in-out infinite alternate-reverse; }
+        @keyframes float1 { to { transform:translate(60px,80px) scale(1.1); } }
+        @keyframes float2 { to { transform:translate(-50px,-60px) scale(1.15); } }
+        @keyframes float3 { to { transform:translate(-40px,50px) scale(0.9); } }
+
+        /* ══ NAVBAR ══ */
+        .navbar {
+            position: fixed; top:0; left:0; right:0; z-index:100;
+            display: flex; align-items:center; justify-content:space-between;
+            padding: 1.25rem 3rem;
+            background: rgba(3,8,16,0.55);
+            backdrop-filter: blur(18px) saturate(1.5);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-brand {
+            font-family: 'Syne', sans-serif; font-weight:800; font-size:1.1rem;
+            color: var(--text); text-decoration:none;
+            display:flex; align-items:center; gap:0.55rem; letter-spacing:-0.5px;
+        }
+        .nav-dot { width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:pulse 2s ease-in-out infinite; }
+        .nav-brand .accent { color: var(--cyan); }
+        .nav-links { display:flex; gap:1.6rem; }
+        .nav-links a { font-size:0.84rem;font-weight:500;color:var(--muted);text-decoration:none;transition:color 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--cyan); }
+        @keyframes pulse {
+            0%,100% { box-shadow:0 0 10px var(--cyan);opacity:1; }
+            50%      { box-shadow:0 0 3px var(--cyan);opacity:0.4; }
+        }
+
+        /* ══ PAGE ══ */
+        .page-container {
+            position: relative; z-index:10;
+            max-width: 1020px; margin:0 auto;
+            padding: 7rem 2rem 5rem;
+        }
+
+        /* ══ PAGE HEADER ══ */
+        .page-header { margin-bottom:2.5rem; animation: riseIn 0.8s cubic-bezier(0.16,1,0.3,1) both; }
+        .eyebrow {
+            display:inline-flex; align-items:center; gap:0.5rem;
+            font-family: var(--mono); font-size:10px; letter-spacing:3.5px;
+            color:var(--cyan); text-transform:uppercase;
+            padding:0.4rem 1rem;
+            border:1px solid rgba(0,229,255,0.18); border-radius:2px;
+            background:rgba(0,229,255,0.04); backdrop-filter:blur(8px);
+            margin-bottom:1rem;
+        }
+        .eyebrow-dot { width:5px;height:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);animation:pulse 1.8s ease-in-out infinite; }
+        .page-title {
+            font-family:'Syne',sans-serif;
+            font-size:clamp(1.8rem,4vw,2.8rem);
+            font-weight:800; letter-spacing:-2px; line-height:1.04;
+            color:var(--text); margin-bottom:0.6rem;
+        }
+        .page-title .grad {
+            background: linear-gradient(110deg, var(--cyan) 0%, #b48bff 50%, var(--violet) 100%);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+        }
+        .page-subtitle { font-size:0.9rem; font-weight:300; color:var(--muted); }
+
+        /* ══ SECTION LABEL ══ */
+        .section-label {
+            font-family:var(--mono); font-size:9px; font-weight:600;
+            letter-spacing:2.5px; text-transform:uppercase;
+            color:rgba(0,229,255,0.35);
+            margin-bottom:0.65rem; margin-top:0.2rem;
+        }
+
+        /* ══ CARD ══ */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.8rem 2rem;
+            backdrop-filter: blur(22px) saturate(1.3);
+            box-shadow: 0 0 0 1px rgba(0,229,255,0.03), 0 20px 60px rgba(0,0,0,0.5),
+                        inset 0 1px 0 rgba(255,255,255,0.03);
+            position:relative; overflow:hidden;
+            margin-bottom: 16px;
+            transition: border-color 0.25s;
+            animation: riseIn 0.7s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        .card:hover { border-color: rgba(0,229,255,0.28); }
+        .card::before {
+            content:''; position:absolute; top:0; left:0; width:50px; height:50px;
+            border-top:1px solid rgba(0,229,255,0.3); border-left:1px solid rgba(0,229,255,0.3);
+            pointer-events:none;
+        }
+        .card::after {
+            content:''; position:absolute; bottom:0; right:0; width:38px; height:38px;
+            border-bottom:1px solid rgba(123,47,247,0.3); border-right:1px solid rgba(123,47,247,0.3);
+            pointer-events:none;
+        }
+        .card:nth-child(2) { animation-delay: 0.08s; }
+        .card:nth-child(3) { animation-delay: 0.16s; }
+
+        /* ══ CARD HEADER ══ */
+        .card-header {
+            display:flex; align-items:center; gap:12px;
+            margin-bottom:1.4rem;
+            padding-bottom:1rem;
+            border-bottom:1px solid rgba(0,229,255,0.08);
+        }
+        .card-icon {
+            width:38px; height:38px; border-radius:4px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:18px; flex-shrink:0;
+        }
+        .icon-cyan   { background:rgba(0,229,255,0.08);  border:1px solid rgba(0,229,255,0.15); }
+        .icon-violet { background:rgba(123,47,247,0.12); border:1px solid rgba(123,47,247,0.2); }
+        .icon-green  { background:rgba(0,229,160,0.08);  border:1px solid rgba(0,229,160,0.2); }
+
+        .card-header-text h2 {
+            font-family:'Syne',sans-serif; font-size:15px; font-weight:800;
+            color:var(--text); letter-spacing:-0.3px; margin-bottom:2px;
+        }
+        .card-header-text p { font-size:11.5px; color:var(--muted); font-weight:300; }
+
+        /* ══ STATUS CARD ══ */
+        .status-inner {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 14px; padding: 0.6rem 0;
+        }
+        .status-badge {
+            display:inline-flex; align-items:center; gap:8px;
+            padding: 8px 20px;
+            font-family: var(--mono); font-size:11px; letter-spacing:2px;
+            text-transform: uppercase;
+            color: var(--green);
+            border: 1px solid rgba(0,229,160,0.3);
+            background: rgba(0,229,160,0.06);
+            border-radius: 2px;
+            box-shadow: 0 0 18px rgba(0,229,160,0.1);
+        }
+        .status-badge-dot {
+            width:6px; height:6px; border-radius:50%;
+            background:var(--green); box-shadow:0 0 8px var(--green);
+            animation: pulse-green 1.8s ease-in-out infinite;
+        }
+        @keyframes pulse-green {
+            0%,100% { box-shadow:0 0 8px var(--green);opacity:1; }
+            50%      { box-shadow:0 0 2px var(--green);opacity:0.4; }
+        }
+        .status-algo {
+            font-family:'Syne',sans-serif; font-size:22px; font-weight:800;
+            letter-spacing:-0.8px; color:var(--text);
+        }
+        .status-algo .algo-accent {
+            background: linear-gradient(110deg, var(--cyan) 0%, #b48bff 100%);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+        }
+        .status-type {
+            font-family: var(--mono); font-size:11px; letter-spacing:1.5px;
+            color:var(--muted); text-transform:uppercase;
+        }
+        .status-type span { color: var(--cyan); }
+
+        /* ══ METRIC GRID ══ */
         .metric-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+            gap: 14px;
         }
-
         .metric-box {
-            background: var(--bg);
+            background: rgba(3,8,16,0.7);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 25px;
+            border-radius: 4px;
+            padding: 2rem 1.5rem;
             text-align: center;
+            position: relative; overflow: hidden;
+            transition: border-color 0.25s, box-shadow 0.25s;
         }
-
+        .metric-box:hover {
+            border-color: rgba(0,229,255,0.35);
+            box-shadow: 0 0 30px rgba(0,229,255,0.08);
+        }
+        .metric-box::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:2px;
+            background: linear-gradient(90deg, var(--cyan), var(--violet));
+            opacity: 0.6;
+        }
         .metric-val {
-            font-size: 2.5rem;
+            font-family:'Syne',sans-serif;
+            font-size: 2.8rem;
             font-weight: 800;
-            color: var(--accent2);
-            margin-bottom: 5px;
+            letter-spacing: -2px;
+            line-height: 1;
+            margin-bottom: 10px;
+            background: linear-gradient(110deg, var(--cyan) 0%, #b48bff 100%);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
         }
-
         .metric-name {
-            font-size: 0.9rem;
-            color: var(--text-muted);
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 2.5px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            color: var(--muted);
         }
 
-        .status-badge {
-            display: inline-block;
-            background: rgba(34, 197, 94, 0.15);
-            color: #86efac;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-weight: 700;
-            margin-bottom: 20px;
+        /* ══ CHECKPOINT CARD ══ */
+        .checkpoint-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(0,229,255,0.2);
+            border-radius: 6px; padding: 1.6rem 2rem;
+            backdrop-filter: blur(22px);
+            box-shadow: 0 0 40px rgba(0,229,255,0.06), 0 20px 60px rgba(0,0,0,0.5);
+            position:relative; overflow:hidden;
+            margin-top: 8px;
+            animation: riseIn 0.7s 0.24s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        .checkpoint-card::before {
+            content:''; position:absolute; top:0; left:0; width:60px; height:60px;
+            border-top:1px solid rgba(0,229,255,0.4); border-left:1px solid rgba(0,229,255,0.4);
+            pointer-events:none;
+        }
+        .checkpoint-card h3 {
+            font-family:'Syne',sans-serif; font-size:15px; font-weight:800;
+            color:var(--text); margin-bottom:0.5rem; letter-spacing:-0.3px;
+        }
+        .checkpoint-card p { font-size:13px; color:var(--muted); margin-bottom:1.2rem; line-height:1.6; }
+
+        /* ══ BUTTONS ══ */
+        .next-bar { display:flex; gap:10px; flex-wrap:wrap; }
+        .btn-primary {
+            display:inline-flex; align-items:center; justify-content:center; gap:7px;
+            padding:10px 22px;
+            font-family:'Syne',sans-serif; font-size:13px; font-weight:700;
+            color:#030810; background:var(--cyan);
+            border:none; border-radius:4px; cursor:pointer;
+            transition:transform 0.2s, box-shadow 0.2s; text-decoration:none;
+            box-shadow:0 0 24px rgba(0,229,255,0.22); letter-spacing:0.2px;
+        }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 0 40px rgba(0,229,255,0.38); }
+        .btn-primary:active { transform:translateY(0); }
+
+        /* ══ FOOTER ══ */
+        footer {
+            position:relative; z-index:10; text-align:center; padding:1.5rem;
+            font-family:var(--mono); font-size:10px; letter-spacing:2.5px;
+            color:rgba(0,229,255,0.16); text-transform:uppercase;
+        }
+
+        @keyframes riseIn {
+            from { opacity:0; transform:translateY(22px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        @media (max-width:650px) {
+            .navbar { padding:1rem 1.2rem; }
+            .nav-links { gap:1rem; font-size:0.78rem; }
+            .page-container { padding:5.5rem 1.2rem 4rem; }
+            .card { padding:1.2rem; }
+            .metric-val { font-size:2.2rem; }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
-        <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/upload">Upload</a>
-            <a href="/summary">Summary</a>
-            <a href="/eda">EDA</a>
-            <a href="/cleaning">Cleaning</a>
-            <a href="/feature_engineering">Engineering</a>
-            <a href="/model" class="active">Model</a>
-        </div>
-    </nav>
+<canvas id="bg-canvas"></canvas>
+<div class="aurora">
+    <div class="aurora-blob ab1"></div>
+    <div class="aurora-blob ab2"></div>
+    <div class="aurora-blob ab3"></div>
+    <div class="aurora-blob ab4"></div>
+</div>
 
-    <div class="page-container">
-        <h1 class="page-title">📈 Training Results</h1>
+<!-- NAVBAR -->
+<nav class="navbar">
+    <a class="nav-brand" href="/"><span class="nav-dot"></span>ML <span class="accent">Ready</span> AI</a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/upload">Upload</a>
+        <a href="/summary">Summary</a>
+        <a href="/eda">EDA</a>
+        <a href="/cleaning">Cleaning</a>
+        <a href="/feature_engineering">Engineering</a>
+        <a href="/model" class="active">Model</a>
+    </div>
+</nav>
+
+<div class="page-container">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="eyebrow"><span class="eyebrow-dot"></span> // model evaluation</div>
+        <h1 class="page-title">Training <span class="grad">Results</span></h1>
         <p class="page-subtitle">Your model has been trained and evaluated successfully.</p>
-
-        <!-- 1. TRAINING STATUS -->
-        <div class="card" style="text-align: center;">
-            <div class="status-badge">✅ Training Complete</div>
-            <h3>{{ algorithm.replace('_', ' ').capitalize() }} Model</h3>
-            <p style="color: var(--text-muted);">Problem Type: <strong>{{ problem_type.capitalize() }}</strong></p>
-        </div>
-
-        <!-- 2. EVALUATION METRICS (Module 13) -->
-        <div class="card">
-            <h3>📊 Performance Metrics</h3>
-            <div class="metric-grid">
-                {% if problem_type == 'classification' %}
-                <div class="metric-box">
-                    <div class="metric-val">{{ metrics.accuracy * 100 }}%</div>
-                    <div class="metric-name">Accuracy Score</div>
-                </div>
-                {% elif problem_type == 'regression' %}
-                <div class="metric-box">
-                    <div class="metric-val">{{ metrics.r2 }}</div>
-                    <div class="metric-name">R² Score (Goodness of Fit)</div>
-                </div>
-                <div class="metric-box">
-                    <div class="metric-val">{{ metrics.rmse }}</div>
-                    <div class="metric-name">RMSE (Average Error)</div>
-                </div>
-                {% elif problem_type == 'clustering' %}
-                <div class="metric-box">
-                    <div class="metric-val">{{ metrics.silhouette }}</div>
-                    <div class="metric-name">Silhouette Score</div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- NEXT STEPS -->
-        <div class="card"
-            style="border-left: 4px solid var(--accent); margin-top: 30px; background: rgba(108, 99, 255, 0.05);">
-            <h3 style="margin-bottom:14px">🏆 Project Complete!</h3>
-            <p>You have successfully processed your data and trained your model. Access the final dashboard to download
-                all project assets.</p>
-            <div class="next-bar">
-                <a href="/final" class="btn-primary" style="font-size:1rem; padding:14px 30px;">🏁 View Final
-                    Dashboard</a>
-            </div>
-        </div>
-
     </div>
 
-    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+    <!-- 1. TRAINING STATUS -->
+    <div class="section-label">// training status</div>
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon icon-green">✅</div>
+            <div class="card-header-text">
+                <h2>Training Complete</h2>
+                <p>Model fitted and evaluation metrics computed</p>
+            </div>
+        </div>
+        <div class="status-inner">
+            <div class="status-badge">
+                <span class="status-badge-dot"></span>
+                training complete
+            </div>
+            <div class="status-algo">
+                <span class="algo-accent">{{ algorithm.replace('_', ' ').capitalize() }}</span> Model
+            </div>
+            <div class="status-type">
+                Problem Type: <span>{{ problem_type.capitalize() }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. EVALUATION METRICS -->
+    <div class="section-label">// performance metrics</div>
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon icon-cyan">📊</div>
+            <div class="card-header-text">
+                <h2>Performance Metrics</h2>
+                <p>Evaluation scores on the held-out test split</p>
+            </div>
+        </div>
+        <div class="metric-grid">
+            {% if problem_type == 'classification' %}
+            <div class="metric-box">
+                <div class="metric-val">{{ metrics.accuracy * 100 }}%</div>
+                <div class="metric-name">Accuracy Score</div>
+            </div>
+            {% elif problem_type == 'regression' %}
+            <div class="metric-box">
+                <div class="metric-val">{{ metrics.r2 }}</div>
+                <div class="metric-name">R² Score — Goodness of Fit</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-val">{{ metrics.rmse }}</div>
+                <div class="metric-name">RMSE — Average Error</div>
+            </div>
+            {% elif problem_type == 'clustering' %}
+            <div class="metric-box">
+                <div class="metric-val">{{ metrics.silhouette }}</div>
+                <div class="metric-name">Silhouette Score</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- NEXT STEPS -->
+    <div class="checkpoint-card">
+        <h3>🏆 Project Complete!</h3>
+        <p>You have successfully processed your data and trained your model. Access the final dashboard to download all project assets.</p>
+        <div class="next-bar">
+            <a href="/final" class="btn-primary" style="font-size:1rem; padding:14px 30px;">🏁 View Final Dashboard</a>
+        </div>
+    </div>
+
+</div>
+
+<footer>ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+<script>
+(function () {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx    = canvas.getContext('2d');
+    let W, H, particles, columns, nodes, edges, frame = 0;
+    const CYAN   = '0,229,255';
+    const VIOLET = '123,47,247';
+    function rand(a,b){return Math.random()*(b-a)+a;}
+    function randInt(a,b){return Math.floor(rand(a,b));}
+    function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;build();}
+    function build(){
+        const colW=22;columns=[];
+        const nCols=Math.ceil(W/colW);
+        for(let i=0;i<nCols;i++){
+            columns.push({x:i*colW+colW/2,y:rand(-H,0),speed:rand(0.4,1.2),
+            chars:Array.from({length:randInt(8,24)},()=>Math.random()>0.5?'1':'0'),
+            opacity:rand(0.04,0.11),active:Math.random()>0.55});
+        }
+        particles=[];
+        for(let i=0;i<55;i++){
+            const isCyan=Math.random()>0.4;
+            particles.push({x:rand(0,W),y:rand(0,H),vx:rand(-0.25,0.25),vy:rand(-0.25,0.25),
+            r:rand(1.2,3.2),color:isCyan?CYAN:VIOLET,opacity:rand(0.08,0.28),
+            pulsePhase:rand(0,Math.PI*2),pulseSpeed:rand(0.008,0.022)});
+        }
+        const layers=[2,4,5,4,2];nodes=[];edges=[];
+        const xStep=W/(layers.length+1);
+        layers.forEach((cnt,li)=>{
+            const x=xStep*(li+1);const yStep=H/(cnt+1);
+            for(let ni=0;ni<cnt;ni++){
+                nodes.push({x,y:yStep*(ni+1),layer:li,r:rand(3,5.5),
+                pulsePhase:rand(0,Math.PI*2),pulseSpeed:rand(0.008,0.024)});
+            }
+        });
+        for(let li=0;li<layers.length-1;li++){
+            const from=nodes.filter(n=>n.layer===li);
+            const to=nodes.filter(n=>n.layer===li+1);
+            from.forEach(f=>to.forEach(t=>{edges.push({from:f,to:t,active:false,timer:0,progress:0});}));
+        }
+    }
+    function draw(){
+        frame++;ctx.clearRect(0,0,W,H);
+        const bg=ctx.createLinearGradient(0,0,W,H);
+        bg.addColorStop(0,'#030810');bg.addColorStop(0.55,'#060e1c');bg.addColorStop(1,'#080618');
+        ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+        columns.forEach(col=>{
+            if(!col.active)return;
+            col.y+=col.speed;
+            if(col.y>H+col.chars.length*14)col.y=rand(-200,-50);
+            col.chars.forEach((ch,i)=>{
+                const cy=col.y+i*14;if(cy<-14||cy>H+14)return;
+                const fade=i===0?0.9:col.opacity*(1-i/col.chars.length);
+                ctx.font='11px Share Tech Mono,monospace';
+                ctx.fillStyle=`rgba(${CYAN},${fade})`;ctx.fillText(ch,col.x,cy);
+            });
+            if(frame%12===0&&Math.random()>0.7){const idx=randInt(0,col.chars.length);col.chars[idx]=Math.random()>0.5?'1':'0';}
+        });
+        particles.forEach(p=>{
+            p.x+=p.vx;p.y+=p.vy;
+            if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+            p.pulsePhase+=p.pulseSpeed;
+            const r=p.r*(1+Math.sin(p.pulsePhase)*0.3);
+            const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*3);
+            grd.addColorStop(0,`rgba(${p.color},${p.opacity})`);grd.addColorStop(1,`rgba(${p.color},0)`);
+            ctx.beginPath();ctx.arc(p.x,p.y,r*3,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+        });
+        if(frame%50===0){const e=edges[randInt(0,edges.length)];e.active=true;e.timer=0;e.progress=0;}
+        edges.forEach(e=>{
+            if(e.active){e.timer++;e.progress=Math.min(e.timer/70,1);if(e.timer>90)e.active=false;}
+            ctx.lineWidth=e.active?1.0:0.4;
+            ctx.strokeStyle=e.active?`rgba(${CYAN},${0.55*(1-Math.abs(e.progress-0.5)*2)})`:
+                `rgba(${CYAN},0.07)`;
+            ctx.beginPath();ctx.moveTo(e.from.x,e.from.y);ctx.lineTo(e.to.x,e.to.y);ctx.stroke();
+            if(e.active&&e.progress<1){
+                const sx=e.from.x+(e.to.x-e.from.x)*e.progress;
+                const sy=e.from.y+(e.to.y-e.from.y)*e.progress;
+                ctx.beginPath();ctx.arc(sx,sy,2.2,0,Math.PI*2);
+                ctx.fillStyle=`rgba(${CYAN},0.95)`;ctx.fill();
+            }
+        });
+        nodes.forEach(n=>{
+            n.pulsePhase+=n.pulseSpeed;
+            const pulse=1+Math.sin(n.pulsePhase)*0.28;const r=n.r*pulse;
+            const grd=ctx.createRadialGradient(n.x,n.y,r*0.4,n.x,n.y,r*2.8);
+            grd.addColorStop(0,`rgba(${CYAN},0.14)`);grd.addColorStop(1,`rgba(${CYAN},0)`);
+            ctx.beginPath();ctx.arc(n.x,n.y,r*2.8,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+            ctx.beginPath();ctx.arc(n.x,n.y,r,0,Math.PI*2);
+            ctx.fillStyle='rgba(3,8,16,0.88)';ctx.fill();
+            ctx.strokeStyle=`rgba(${CYAN},0.75)`;ctx.lineWidth=0.8;ctx.stroke();
+            ctx.beginPath();ctx.arc(n.x,n.y,r*0.32,0,Math.PI*2);
+            ctx.fillStyle=`rgba(${CYAN},1)`;ctx.fill();
+        });
+        requestAnimationFrame(draw);
+    }
+    window.addEventListener('resize',resize);resize();draw();
+})();
+</script>
 
 </body>
-
 </html>
