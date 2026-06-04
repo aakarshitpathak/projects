@@ -1,184 +1,837 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Dataset — ML Ready AI</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* ---- Upload-specific styles ---- */
-        .upload-box {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius);
-            padding: 50px 30px;
-            text-align: center;
-            transition: border-color 0.3s, background 0.3s;
-            cursor: pointer;
-            margin-bottom: 28px;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Dataset — ML Ready AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-        .upload-box:hover {
-            border-color: var(--accent);
-            background: rgba(108, 99, 255, 0.05);
-        }
+  <style>
+    :root {
+      --cyan:   #00e5ff;
+      --violet: #7b2ff7;
+      --pink:   #ff2d78;
+      --bg:     #030810;
+      --card-bg: rgba(6, 14, 28, 0.82);
+      --border: rgba(0,229,255,0.12);
+      --borderhover: rgba(0,229,255,0.5);
+      --text:   #eef4ff;
+      --muted:  rgba(170,200,255,0.42);
+      --mono:   'Share Tech Mono', monospace;
+    }
 
-        .upload-icon {
-            font-size: 3.2rem;
-            margin-bottom: 14px;
-        }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .upload-box h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
+    html, body { height: 100%; }
 
-        .upload-box p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 18px;
-        }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+    }
 
-        .formats-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
+    /* ═══ CANVAS BG ═══ */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+    }
 
-        .fmt-tag {
-            background: rgba(0, 210, 255, 0.1);
-            border: 1px solid var(--accent2);
-            color: var(--accent2);
-            border-radius: 6px;
-            padding: 4px 14px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
+    /* ═══ AURORA MESH (CSS) ═══ */
+    .aurora {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .aurora-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      mix-blend-mode: screen;
+      opacity: 0.55;
+    }
+    .ab1 {
+      width: 700px; height: 500px;
+      background: radial-gradient(ellipse, rgba(0,229,255,0.18) 0%, transparent 70%);
+      top: -180px; left: -200px;
+      animation: float1 20s ease-in-out infinite alternate;
+    }
+    .ab2 {
+      width: 600px; height: 600px;
+      background: radial-gradient(ellipse, rgba(123,47,247,0.22) 0%, transparent 70%);
+      bottom: -200px; right: -150px;
+      animation: float2 25s ease-in-out infinite alternate;
+    }
+    .ab3 {
+      width: 400px; height: 400px;
+      background: radial-gradient(ellipse, rgba(255,45,120,0.12) 0%, transparent 70%);
+      top: 40%; left: 55%;
+      animation: float3 17s ease-in-out infinite alternate;
+    }
+    .ab4 {
+      width: 350px; height: 250px;
+      background: radial-gradient(ellipse, rgba(0,229,255,0.1) 0%, transparent 70%);
+      top: 60%; left: 10%;
+      animation: float1 22s ease-in-out infinite alternate-reverse;
+    }
 
-        /* Hidden real file input, triggered by label */
-        #file-input {
-            display: none;
-        }
+    @keyframes float1 { to { transform: translate(60px, 80px) scale(1.1); } }
+    @keyframes float2 { to { transform: translate(-50px, -60px) scale(1.15); } }
+    @keyframes float3 { to { transform: translate(-40px, 50px) scale(0.9); } }
 
-        .file-label {
-            display: inline-block;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 10px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: border-color 0.2s;
-            margin-bottom: 10px;
-        }
+    /* ═══ NAVBAR ═══ */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 3rem;
+      background: rgba(3,8,16,0.55);
+      backdrop-filter: blur(18px) saturate(1.5);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      letter-spacing: -0.5px;
+    }
+    .nav-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .nav-brand .accent { color: var(--cyan); }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a {
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--cyan); }
 
-        .file-label:hover {
-            border-color: var(--accent);
-        }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 10px var(--cyan); opacity:1; }
+      50%      { box-shadow: 0 0 3px var(--cyan); opacity:0.4; }
+    }
 
-        #file-name {
-            font-size: 0.82rem;
-            color: var(--accent2);
-            min-height: 18px;
-        }
+    /* ═══ PAGE LAYOUT ═══ */
+    .page-wrap {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8rem 1.5rem 5rem;
+    }
 
-        .tip-box {
-            background: rgba(108, 99, 255, 0.08);
-            border-left: 3px solid var(--accent);
-            border-radius: 6px;
-            padding: 12px 16px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: 10px;
-        }
-    </style>
+    /* ═══ HEADER ═══ */
+    .page-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: riseIn 0.8s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 3.5px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      padding: 0.4rem 1rem;
+      border: 1px solid rgba(0,229,255,0.18);
+      border-radius: 2px;
+      background: rgba(0,229,255,0.04);
+      backdrop-filter: blur(8px);
+      margin-bottom: 1.2rem;
+    }
+    .eyebrow-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 6px var(--cyan);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    h1.page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.1rem, 5vw, 3.4rem);
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1.04;
+      color: var(--text);
+      margin-bottom: 0.7rem;
+    }
+    h1.page-title .grad {
+      background: linear-gradient(110deg, var(--cyan) 0%, #b48bff 50%, var(--violet) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .page-sub {
+      font-size: 0.9rem;
+      font-weight: 300;
+      color: var(--muted);
+      letter-spacing: 0.2px;
+    }
+
+    /* ═══ FLASH ═══ */
+    .flash {
+      width: 100%; max-width: 660px;
+      padding: 0.75rem 1.2rem;
+      border-radius: 3px;
+      font-size: 0.87rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      border: 1px solid;
+      animation: riseIn 0.4s ease both;
+    }
+    .flash.error   { background:rgba(255,60,80,0.08); border-color:rgba(255,60,80,0.3); color:#ff8090; }
+    .flash.success { background:rgba(0,229,255,0.07); border-color:rgba(0,229,255,0.25); color:var(--cyan); }
+
+    /* ═══ CARD ═══ */
+    .card {
+      width: 100%; max-width: 660px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2.6rem 2.8rem;
+      backdrop-filter: blur(22px) saturate(1.3);
+      box-shadow:
+        0 0 0 1px rgba(0,229,255,0.04),
+        0 30px 80px rgba(0,0,0,0.55),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+      animation: riseIn 0.85s 0.1s cubic-bezier(0.16,1,0.3,1) both;
+      position: relative;
+      overflow: hidden;
+    }
+    /* HUD corner brackets */
+    .card::before {
+      content:'';
+      position:absolute; top:0; left:0;
+      width:72px; height:72px;
+      border-top: 1.5px solid rgba(0,229,255,0.4);
+      border-left: 1.5px solid rgba(0,229,255,0.4);
+      pointer-events:none;
+    }
+    .card::after {
+      content:'';
+      position:absolute; bottom:0; right:0;
+      width:56px; height:56px;
+      border-bottom: 1.5px solid rgba(123,47,247,0.4);
+      border-right: 1.5px solid rgba(123,47,247,0.4);
+      pointer-events:none;
+    }
+    /* inner shimmer */
+    .card-shine {
+      position:absolute; inset:0;
+      background: radial-gradient(ellipse at 30% 0%, rgba(0,229,255,0.055) 0%, transparent 55%);
+      pointer-events:none;
+    }
+
+    /* ═══ DROP ZONE ═══ */
+    .drop-zone {
+      position: relative;
+      border: 1px dashed rgba(0,229,255,0.22);
+      border-radius: 5px;
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.3s, background 0.3s;
+      margin-bottom: 1.6rem;
+      overflow: hidden;
+      background: rgba(0,229,255,0.015);
+    }
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: var(--borderhover);
+      background: rgba(0,229,255,0.04);
+    }
+
+    /* animated scan line */
+    .scanline {
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--cyan) 50%, transparent 100%);
+      top: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .drop-zone:hover .scanline,
+    .drop-zone.drag-over .scanline {
+      animation: scan 1.8s ease-in-out infinite;
+      opacity: 1;
+    }
+    @keyframes scan {
+      0%   { top: 0%;   opacity: 0.8; }
+      100% { top: 100%; opacity: 0;   }
+    }
+
+    /* corner sparks */
+    .spark { position:absolute; width:6px; height:6px; pointer-events:none; }
+    .spark::before, .spark::after { content:''; position:absolute; background:var(--cyan); }
+    .spark-tl { top:10px; left:10px; }
+    .spark-tl::before { width:14px; height:1px; top:0; left:0; }
+    .spark-tl::after  { width:1px; height:14px; top:0; left:0; }
+    .spark-tr { top:10px; right:10px; }
+    .spark-tr::before { width:14px; height:1px; top:0; right:0; }
+    .spark-tr::after  { width:1px; height:14px; top:0; right:0; }
+    .spark-bl { bottom:10px; left:10px; }
+    .spark-bl::before { width:14px; height:1px; bottom:0; left:0; }
+    .spark-bl::after  { width:1px; height:14px; bottom:0; left:0; }
+    .spark-br { bottom:10px; right:10px; }
+    .spark-br::before { width:14px; height:1px; bottom:0; right:0; }
+    .spark-br::after  { width:1px; height:14px; bottom:0; right:0; }
+
+    /* upload icon ring */
+    .icon-ring {
+      width: 74px; height: 74px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,229,255,0.2);
+      background: rgba(0,229,255,0.055);
+      display: flex; align-items:center; justify-content:center;
+      margin: 0 auto 1.3rem;
+      position: relative;
+      transition: border-color 0.3s;
+    }
+    .icon-ring::before {
+      content:'';
+      position:absolute; inset:-5px;
+      border-radius:50%;
+      border: 1px dashed rgba(0,229,255,0.18);
+      animation: spin 20s linear infinite;
+    }
+    .icon-ring::after {
+      content:'';
+      position:absolute; inset:-11px;
+      border-radius:50%;
+      border: 1px dashed rgba(123,47,247,0.12);
+      animation: spin 32s linear infinite reverse;
+    }
+    .drop-zone:hover .icon-ring { border-color: rgba(0,229,255,0.5); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .upload-svg {
+      width: 28px; height: 28px;
+      stroke: var(--cyan);
+      fill: none;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.3s;
+    }
+    .drop-zone:hover .upload-svg { transform: translateY(-3px); }
+
+    .drop-zone h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      margin-bottom: 0.35rem;
+      color: var(--text);
+    }
+    .drop-zone p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 300;
+      margin-bottom: 1.4rem;
+    }
+
+    /* format tags */
+    .formats-row {
+      display: flex; flex-wrap:wrap; gap:7px;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+    .fmt-tag {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 1.8px;
+      color: var(--cyan);
+      border: 1px solid rgba(0,229,255,0.2);
+      background: rgba(0,229,255,0.05);
+      border-radius: 2px;
+      padding: 4px 13px;
+      text-transform: uppercase;
+    }
+
+    #file-input { display: none; }
+
+    .browse-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 1.5rem;
+      border: 1px solid rgba(0,229,255,0.3);
+      border-radius: 3px;
+      color: var(--cyan);
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+      margin-bottom: 0.9rem;
+      text-decoration: none;
+    }
+    .browse-btn:hover {
+      background: rgba(0,229,255,0.1);
+      border-color: var(--cyan);
+      box-shadow: 0 0 16px rgba(0,229,255,0.15);
+    }
+
+    #file-name {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      min-height: 18px;
+      transition: color 0.2s;
+    }
+    #file-name.has-file { color: var(--cyan); }
+
+    /* ═══ TIP BOX ═══ */
+    .tip-box {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      background: rgba(0,229,255,0.04);
+      border-left: 2px solid rgba(0,229,255,0.3);
+      border-radius: 0 3px 3px 0;
+      padding: 0.85rem 1.1rem;
+      font-size: 0.81rem;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 1.8rem;
+    }
+    .tip-box strong { color: rgba(200,220,255,0.75); font-weight:600; }
+
+    /* ═══ SUBMIT BUTTON ═══ */
+    .btn-upload {
+      width: 100%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 1rem;
+      border: none;
+      border-radius: 4px;
+      background: var(--cyan);
+      color: #030810;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.96rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.22s, box-shadow 0.22s;
+      box-shadow: 0 0 30px rgba(0,229,255,0.28), 0 4px 18px rgba(0,0,0,0.45);
+    }
+    .btn-upload::before {
+      content:'';
+      position:absolute; inset:0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, transparent 50%);
+      pointer-events:none;
+    }
+    .btn-upload:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 50px rgba(0,229,255,0.42), 0 8px 28px rgba(0,0,0,0.45);
+    }
+    .btn-upload:active { transform: translateY(0); }
+    .btn-upload svg {
+      width:17px; height:17px;
+      stroke:#030810; fill:none;
+      stroke-width:2.2;
+      stroke-linecap:round; stroke-linejoin:round;
+      transition: transform 0.25s;
+    }
+    .btn-upload:hover svg { transform: translateY(-2px); }
+
+    /* ═══ FOOTER ═══ */
+    footer {
+      position: relative; z-index:10;
+      text-align: center;
+      padding: 1.5rem;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      color: rgba(0,229,255,0.16);
+      text-transform: uppercase;
+    }
+
+    /* ═══ KEYFRAMES ═══ */
+    @keyframes riseIn {
+      from { opacity:0; transform:translateY(24px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    @media (max-width:600px) {
+      .navbar { padding:1rem 1.2rem; }
+      .nav-links { gap:1.2rem; }
+      .card { padding:1.6rem 1.2rem; }
+      .drop-zone { padding:2rem 1rem; }
+    }
+  </style>
 </head>
 
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <a class="nav-brand" href="/">ML <span>Ready</span> AI</a>
-        <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/upload" class="active">Upload</a>
-        </div>
-    </nav>
+<!-- ══ ANIMATED CANVAS ══ -->
+<canvas id="bg-canvas"></canvas>
 
-    <div class="page-container">
-        <h1 class="page-title">📂 Upload Your Dataset</h1>
-        <p class="page-subtitle">Supported formats: CSV, Excel (.xlsx), JSON, XML, HTML tables</p>
+<!-- ══ AURORA MESH ══ -->
+<div class="aurora">
+  <div class="aurora-blob ab1"></div>
+  <div class="aurora-blob ab2"></div>
+  <div class="aurora-blob ab3"></div>
+  <div class="aurora-blob ab4"></div>
+</div>
 
-        <!-- Flash messages (errors / success) -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        {% for category, message in messages %}
-        <div class="flash {{ category }}">{{ message }}</div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar">
+  <a class="nav-brand" href="/">
+    <span class="nav-dot"></span>
+    ML <span class="accent">Ready</span> AI
+  </a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/upload" class="active">Upload</a>
+  </div>
+</nav>
 
-        <!-- UPLOAD FORM -->
-        <div class="card">
-            <form method="POST" action="/upload" enctype="multipart/form-data" id="upload-form">
+<!-- ══ MAIN ══ -->
+<div class="page-wrap">
 
-                <!-- Drag-drop styled box -->
-                <div class="upload-box" onclick="document.getElementById('file-input').click()">
-                    <div class="upload-icon">📁</div>
-                    <h3>Click to browse or drag &amp; drop your file</h3>
-                    <p>Maximum file size: 50 MB</p>
-
-                    <!-- Supported format badges -->
-                    <div class="formats-row">
-                        <span class="fmt-tag">CSV</span>
-                        <span class="fmt-tag">XLSX</span>
-                        <span class="fmt-tag">JSON</span>
-                        <span class="fmt-tag">XML</span>
-                        <span class="fmt-tag">HTML</span>
-                    </div>
-
-                    <!-- Actual file input (hidden) -->
-                    <input type="file" id="file-input" name="dataset" accept=".csv,.xlsx,.xls,.json,.xml,.html,.htm"
-                        onchange="showFileName(this)">
-
-                    <!-- Shows chosen file name -->
-                    <div id="file-name">No file selected yet</div>
-                </div>
-
-                <div class="tip-box">
-                    💡 <strong>Tip:</strong> Make sure your dataset has a header row (column names in the first row).
-                    CSV files work best. Large files may take a few seconds to process.
-                </div>
-
-                <br>
-                <button type="submit" class="btn-primary" style="width:100%; border:none; font-size:1rem;">
-                    ⬆️ Upload &amp; Analyse
-                </button>
-            </form>
-        </div>
+  <div class="page-header">
+    <div class="eyebrow">
+      <span class="eyebrow-dot"></span>
+      // data ingestion module
     </div>
+    <h1 class="page-title">Upload Your <span class="grad">Dataset</span></h1>
+    <p class="page-sub">CSV · Excel · JSON · XML · HTML — up to 50 MB</p>
+  </div>
 
-    <footer class="footer">ML Ready AI &copy; 2025 — Final Year Project</footer>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
 
-    <script>
-        /* Show the selected file's name inside the upload box */
-        function showFileName(input) {
-            const label = document.getElementById('file-name');
-            if (input.files && input.files.length > 0) {
-                label.textContent = '✅ Selected: ' + input.files[0].name;
-                label.style.color = '#00d2ff';
-            } else {
-                label.textContent = 'No file selected yet';
-            }
-        }
-    </script>
+  <div class="card">
+    <div class="card-shine"></div>
+
+    <form method="POST" action="/upload" enctype="multipart/form-data" id="upload-form">
+
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+        <!-- animated scanline -->
+        <div class="scanline"></div>
+
+        <!-- HUD corner sparks -->
+        <div class="spark spark-tl"></div>
+        <div class="spark spark-tr"></div>
+        <div class="spark spark-bl"></div>
+        <div class="spark spark-br"></div>
+
+        <div class="icon-ring">
+          <svg class="upload-svg" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+
+        <h3>Drop your file here or browse</h3>
+        <p>Maximum file size: 50 MB</p>
+
+        <div class="formats-row">
+          <span class="fmt-tag">CSV</span>
+          <span class="fmt-tag">XLSX</span>
+          <span class="fmt-tag">JSON</span>
+          <span class="fmt-tag">XML</span>
+          <span class="fmt-tag">HTML</span>
+        </div>
+
+        <input type="file" id="file-input" name="dataset"
+          accept=".csv,.xlsx,.xls,.json,.xml,.html,.htm"
+          onchange="showFileName(this)">
+
+        <label class="browse-btn" for="file-input"
+          onclick="event.stopPropagation()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+            <polyline points="13 2 13 9 20 9"/>
+          </svg>
+          Browse files
+        </label>
+
+        <div id="file-name">No file selected yet</div>
+      </div>
+
+      <div class="tip-box">
+        <span>💡</span>
+        <span><strong>Tip:</strong> Make sure your dataset has a header row (column names in the first row).
+        CSV files work best. Large files may take a few seconds to process.</span>
+      </div>
+
+      <button type="submit" class="btn-upload">
+        <svg viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Upload &amp; Analyse
+      </button>
+
+    </form>
+  </div>
+</div>
+
+<footer>ML Ready AI &copy; 2025 — Final Year Project</footer>
+
+<script>
+/* ════════════════════════════════════
+   CANVAS: floating neural particles
+   + binary rain columns
+   ════════════════════════════════════ */
+(function () {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H, particles, columns, nodes, edges, frame = 0;
+
+  const CYAN   = '0,229,255';
+  const VIOLET = '123,47,247';
+
+  function rand(a, b) { return Math.random() * (b - a) + a; }
+  function randInt(a, b) { return Math.floor(rand(a, b)); }
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    build();
+  }
+
+  function build() {
+    /* ── Binary rain columns ── */
+    const colW = 22;
+    columns = [];
+    const nCols = Math.ceil(W / colW);
+    for (let i = 0; i < nCols; i++) {
+      columns.push({
+        x: i * colW + colW / 2,
+        y: rand(-H, 0),
+        speed: rand(0.4, 1.2),
+        chars: Array.from({ length: randInt(8, 24) }, () =>
+          Math.random() > 0.5 ? '1' : '0'),
+        opacity: rand(0.04, 0.11),
+        active: Math.random() > 0.55,
+      });
+    }
+
+    /* ── Floating orb particles ── */
+    particles = [];
+    for (let i = 0; i < 55; i++) {
+      const isCyan = Math.random() > 0.4;
+      particles.push({
+        x: rand(0, W), y: rand(0, H),
+        vx: rand(-0.25, 0.25), vy: rand(-0.25, 0.25),
+        r: rand(1.2, 3.2),
+        color: isCyan ? CYAN : VIOLET,
+        opacity: rand(0.08, 0.28),
+        pulsePhase: rand(0, Math.PI * 2),
+        pulseSpeed: rand(0.008, 0.022),
+      });
+    }
+
+    /* ── Mini neural network (same logic as homepage) ── */
+    const layers = [2, 4, 5, 4, 2];
+    nodes = []; edges = [];
+    const xStep = W / (layers.length + 1);
+    layers.forEach((cnt, li) => {
+      const x = xStep * (li + 1);
+      const yStep = H / (cnt + 1);
+      for (let ni = 0; ni < cnt; ni++) {
+        nodes.push({
+          x, y: yStep * (ni + 1),
+          layer: li,
+          r: rand(3, 5.5),
+          pulsePhase: rand(0, Math.PI * 2),
+          pulseSpeed: rand(0.008, 0.024),
+        });
+      }
+    });
+    for (let li = 0; li < layers.length - 1; li++) {
+      const from = nodes.filter(n => n.layer === li);
+      const to   = nodes.filter(n => n.layer === li + 1);
+      from.forEach(f => to.forEach(t => {
+        edges.push({ from: f, to: t, active: false, timer: 0, progress: 0 });
+      }));
+    }
+  }
+
+  function draw() {
+    frame++;
+
+    /* clear */
+    ctx.clearRect(0, 0, W, H);
+
+    /* deep bg gradient */
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#030810');
+    bg.addColorStop(0.55, '#060e1c');
+    bg.addColorStop(1, '#080618');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    /* ── binary rain ── */
+    columns.forEach(col => {
+      if (!col.active) return;
+      col.y += col.speed;
+      if (col.y > H + col.chars.length * 14) col.y = rand(-200, -50);
+
+      col.chars.forEach((ch, i) => {
+        const cy = col.y + i * 14;
+        if (cy < -14 || cy > H + 14) return;
+        const fade = i === 0 ? 0.9 : col.opacity * (1 - i / col.chars.length);
+        ctx.font = '11px Share Tech Mono, monospace';
+        ctx.fillStyle = `rgba(${CYAN},${fade})`;
+        ctx.fillText(ch, col.x, cy);
+      });
+
+      /* randomly flip chars */
+      if (frame % 12 === 0 && Math.random() > 0.7) {
+        const idx = randInt(0, col.chars.length);
+        col.chars[idx] = Math.random() > 0.5 ? '1' : '0';
+      }
+    });
+
+    /* ── floating particles ── */
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      p.pulsePhase += p.pulseSpeed;
+      const r = p.r * (1 + Math.sin(p.pulsePhase) * 0.3);
+      const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 3);
+      grd.addColorStop(0, `rgba(${p.color},${p.opacity})`);
+      grd.addColorStop(1, `rgba(${p.color},0)`);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r * 3, 0, Math.PI * 2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+    });
+
+    /* ── neural edges ── */
+    if (frame % 50 === 0) {
+      const e = edges[randInt(0, edges.length)];
+      e.active = true; e.timer = 0; e.progress = 0;
+    }
+    edges.forEach(e => {
+      if (e.active) {
+        e.timer++;
+        e.progress = Math.min(e.timer / 70, 1);
+        if (e.timer > 90) { e.active = false; }
+      }
+      ctx.lineWidth = e.active ? 1.0 : 0.4;
+      ctx.strokeStyle = e.active
+        ? `rgba(${CYAN},${0.55 * (1 - Math.abs(e.progress - 0.5) * 2)})`
+        : `rgba(${CYAN},0.07)`;
+      ctx.beginPath();
+      ctx.moveTo(e.from.x, e.from.y);
+      ctx.lineTo(e.to.x, e.to.y);
+      ctx.stroke();
+
+      if (e.active && e.progress < 1) {
+        const sx = e.from.x + (e.to.x - e.from.x) * e.progress;
+        const sy = e.from.y + (e.to.y - e.from.y) * e.progress;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${CYAN},0.95)`;
+        ctx.fill();
+      }
+    });
+
+    /* ── neural nodes ── */
+    nodes.forEach(n => {
+      n.pulsePhase += n.pulseSpeed;
+      const pulse = 1 + Math.sin(n.pulsePhase) * 0.28;
+      const r = n.r * pulse;
+      const grd = ctx.createRadialGradient(n.x, n.y, r * 0.4, n.x, n.y, r * 2.8);
+      grd.addColorStop(0, `rgba(${CYAN},0.14)`);
+      grd.addColorStop(1, `rgba(${CYAN},0)`);
+      ctx.beginPath(); ctx.arc(n.x, n.y, r * 2.8, 0, Math.PI * 2);
+      ctx.fillStyle = grd; ctx.fill();
+
+      ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(3,8,16,0.88)'; ctx.fill();
+      ctx.strokeStyle = `rgba(${CYAN},0.75)`;
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      ctx.beginPath(); ctx.arc(n.x, n.y, r * 0.32, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${CYAN},1)`; ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+})();
+
+/* ════ FILE SELECTION ════ */
+function showFileName(input) {
+  const el = document.getElementById('file-name');
+  if (input.files && input.files.length > 0) {
+    el.textContent = '✓ ' + input.files[0].name;
+    el.classList.add('has-file');
+  } else {
+    el.textContent = 'No file selected yet';
+    el.classList.remove('has-file');
+  }
+}
+
+/* ════ DRAG & DROP ════ */
+const zone = document.getElementById('drop-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('drag-over');
+  if (e.dataTransfer.files.length) {
+    document.getElementById('file-input').files = e.dataTransfer.files;
+    showFileName(document.getElementById('file-input'));
+  }
+});
+</script>
 
 </body>
-
 </html>
