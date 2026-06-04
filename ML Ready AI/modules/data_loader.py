@@ -5,8 +5,6 @@ Supports: CSV, Excel (.xlsx/.xls), JSON, XML, HTML
 """
 
 import pandas as pd
-
-
 # Allowed file extensions
 ALLOWED_EXTENSIONS = {'csv', 'xlsx', 'xls', 'json', 'xml', 'html', 'htm'}
 
