@@ -9,7 +9,6 @@ Generates a clean summary of the DataFrame:
 
 import pandas as pd
 
-
 def get_summary(df: pd.DataFrame) -> dict:
     """
     Returns a dictionary containing all summary information
