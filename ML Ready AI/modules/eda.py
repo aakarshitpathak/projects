@@ -12,7 +12,6 @@ import io
 import base64
 import pandas as pd
 
-
 def get_base64_plot():
     """Converts the current matplotlib figure to a base64 string."""
     buf = io.BytesIO()
