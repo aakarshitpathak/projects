@@ -8,3 +8,5 @@ joblib
 openpyxl
 xlrd
 lxml
+Flask-SQLAlchemy
+gunicorn
